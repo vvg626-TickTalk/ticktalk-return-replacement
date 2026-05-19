@@ -1,0 +1,40 @@
+---
+description: TickTalk Service Portal Demo — product, UX, implementation, and Cursor agent behavior
+alwaysApply: true
+---
+
+# TickTalk Service Portal Demo — project rules
+
+## Source of truth
+
+- **`reference/*.pptx`** (primary deck) defines **business logic**, **flow structure**, **UI/UX direction**, **visual hierarchy**, and **wording intent**.
+- **`docs/ai-instructions.md`**, **`docs/user-flows.md`**, **`docs/copy-notes.md`**, **`docs/requirements.md`** refine execution; on conflict with the PPT on **policy/eligibility**, follow the PPT or record ambiguity (below)—not AI inference alone.
+
+## Copy & tone
+
+- **Native US English**; **mobile-readable**: short sentences, scannable bullets, **concise CTAs** (see `docs/copy-notes.md`).
+- **Premium, parent-friendly, modern SaaS**: warm, clear, not stiff or “translated.”
+- If copy is too long for small screens, **shorten without changing meaning**.
+
+## Do not invent policy
+
+Never change or assume final rules for **warranty**, **return eligibility**, **Care+**, or **RMA** behavior without **`docs/open-questions.md`** (Question / Why it matters / Suggested approaches). Same for any **new** business rule.
+
+## UI priorities
+
+- **Mobile-first**; **touch-friendly** spacing; **simple card-based** layouts; **clean type**; low-stress paths.
+- **Reuse** `src/components/` patterns; **Tailwind** utilities + shared spacing; avoid one-off magic numbers unless extending the theme.
+- **Avoid**: long paragraphs in UI, heavy jargon, clutter, **unnecessary modals**, **deep nesting** of cards.
+
+## Stack
+
+- **React + TypeScript**; keep components typed and route/screens thin where possible.
+
+## Mocks vs backend
+
+- **Mock data first**; **no undocumented real API contracts**.
+- **Unclear product logic** → **`docs/open-questions.md`**, not guesses in code or copy.
+
+## PPT vs mobile UX
+
+- If layout from the deck hurts **mobile usability**, simplify the **presentation** while preserving **business intent**, and log gaps in **`docs/open-questions.md`** when customer-facing promises are affected.

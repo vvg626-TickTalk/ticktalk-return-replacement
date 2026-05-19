@@ -1,0 +1,537 @@
+{
+  "src/features/replacement/replacementResolution.ts": {
+    "mtime": 1779154516502,
+    "checkpoint": "bf2439a4-d062-4bab-8ab8-944a071ae39f",
+    "uuid": "ecd097dd-cb9d-402b-bbf1-66c72a1bdf50"
+  },
+  "src/types/models.ts": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "f405600b-615d-453c-9312-a245f2585541"
+  },
+  "src/mock-data/inventory.ts": {
+    "mtime": 1779154516502,
+    "checkpoint": "bf2439a4-d062-4bab-8ab8-944a071ae39f",
+    "uuid": "150a9239-deb7-42ba-a065-fc18f0009d4d"
+  },
+  "src/features/replacement/replacementInventory.ts": {
+    "mtime": 1779154516502,
+    "checkpoint": "bf2439a4-d062-4bab-8ab8-944a071ae39f",
+    "uuid": "fae657a0-2a6c-4a57-9d65-74ce7b906448"
+  },
+  "src/features/replacement/ReplacementStockModals.tsx": {
+    "mtime": 1779157680241,
+    "checkpoint": "0668ffe8-cf09-4cdc-9cb9-3a36574e065a",
+    "uuid": "1811d223-4f89-46dd-89c5-ab9981e1f814"
+  },
+  "src/features/replacement/ReplaceFlowWizard.tsx": {
+    "mtime": 1779157680241,
+    "checkpoint": "0668ffe8-cf09-4cdc-9cb9-3a36574e065a",
+    "uuid": "90e365f8-0587-4197-b5f6-0284f22739fa"
+  },
+  "src/index.css": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "a3e2b96a-03ae-4fce-a22a-8be0e9217c50"
+  },
+  "src/ui/formControls.ts": {
+    "mtime": 1779154632585,
+    "checkpoint": "be8c55b4-2c7a-4150-a3c2-1249a530ae88",
+    "uuid": "bc846eca-4068-4ea8-8459-deb41710cea8"
+  },
+  "src/features/replacement/WizardStickyActions.tsx": {
+    "mtime": 1779144842369,
+    "checkpoint": "749cf753-e889-4a77-af75-a121ae937aa2",
+    "uuid": "19ade16b-0952-4518-b7ee-dac73f1c44ae"
+  },
+  "tailwind.config.js": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "7dbb0349-cc2b-42b7-a2cd-7ccd8ebc0212"
+  },
+  "src/components/Button.tsx": {
+    "mtime": 1779154632585,
+    "checkpoint": "be8c55b4-2c7a-4150-a3c2-1249a530ae88",
+    "uuid": "024d133c-f7ca-4c27-b0e2-c7c0ebef066a"
+  },
+  "src/components/Card.tsx": {
+    "mtime": 1779154632585,
+    "checkpoint": "be8c55b4-2c7a-4150-a3c2-1249a530ae88",
+    "uuid": "e9159e06-00d6-4e25-ae7e-3e0acb9ffe2b"
+  },
+  "src/components/FormField.tsx": {
+    "mtime": 1779154632585,
+    "checkpoint": "be8c55b4-2c7a-4150-a3c2-1249a530ae88",
+    "uuid": "4ae675bf-b9d6-494a-964e-2920006ab69f"
+  },
+  "src/components/Modal.tsx": {
+    "mtime": 1779155029864,
+    "checkpoint": "b5816ba9-6708-4bdc-ab1a-5f5726efca3c",
+    "uuid": "e9e70912-a35f-43d5-8b04-a3083ec0d0cc"
+  },
+  "src/components/Stepper.tsx": {
+    "mtime": 1779154632585,
+    "checkpoint": "be8c55b4-2c7a-4150-a3c2-1249a530ae88",
+    "uuid": "8dfb0832-55de-4bca-afff-93e0957b1bd8"
+  },
+  "src/components/PageHeader.tsx": {
+    "mtime": 1779154632585,
+    "checkpoint": "be8c55b4-2c7a-4150-a3c2-1249a530ae88",
+    "uuid": "879ec3cc-ee89-4a13-a080-cd132963e339"
+  },
+  "src/components/ProductCard.tsx": {
+    "mtime": 1779144842369,
+    "checkpoint": "749cf753-e889-4a77-af75-a121ae937aa2",
+    "uuid": "e508f0e4-1016-4032-8edf-e9a441d5c6d8"
+  },
+  "src/components/StatusBadge.tsx": {
+    "mtime": 1779144842369,
+    "checkpoint": "749cf753-e889-4a77-af75-a121ae937aa2",
+    "uuid": "83daf040-d22a-4174-994b-9631a66f0ff4"
+  },
+  "src/components/AppShell.tsx": {
+    "mtime": 1779144842369,
+    "checkpoint": "749cf753-e889-4a77-af75-a121ae937aa2",
+    "uuid": "48a29ae1-089d-4ea5-b27b-98b7f8ec4d00"
+  },
+  "src/features/replacement/ReasonFields.tsx": {
+    "mtime": 1779154632585,
+    "checkpoint": "be8c55b4-2c7a-4150-a3c2-1249a530ae88",
+    "uuid": "4fa9efee-0515-4625-b382-6f65333f3280"
+  },
+  "src/features/replacement/CarePlusVerifyForm.tsx": {
+    "mtime": 1779154632585,
+    "checkpoint": "be8c55b4-2c7a-4150-a3c2-1249a530ae88",
+    "uuid": "484aba77-4de9-4030-90fc-cc4f72453928"
+  },
+  "docs/open-questions.md": {
+    "mtime": 1779145016646,
+    "checkpoint": "63e4f91b-25e1-48ff-b70a-9f4db354fa85",
+    "uuid": "278cc282-c037-4529-95b7-713646711dbc"
+  },
+  "src/pages/service/OrderDetailPage.tsx": {
+    "mtime": 1779145661170,
+    "checkpoint": "da889099-7609-41a1-9fbf-3f6fbf9ae2a4",
+    "uuid": "81a388c8-ec1b-4d21-a461-ea3eae9a8a97"
+  },
+  "src/ui/supportPortalLayout.ts": {
+    "mtime": 1779154632585,
+    "checkpoint": "be8c55b4-2c7a-4150-a3c2-1249a530ae88",
+    "uuid": "5f4edd7b-9761-40c4-9604-bd57aa79d197"
+  },
+  "src/pages/service/OrderLookupPage.tsx": {
+    "mtime": 1779152412323,
+    "checkpoint": "5d2ed673-98d7-46ad-bbe6-f2f0478998f1",
+    "uuid": "b73d65aa-4199-4c4b-be6a-d350d8a99043"
+  },
+  "src/features/return/ReturnFlowWizard.tsx": {
+    "mtime": 1779154632585,
+    "checkpoint": "be8c55b4-2c7a-4150-a3c2-1249a530ae88",
+    "uuid": "2c37b86c-4da8-492a-97ac-e7aff6dab90e"
+  },
+  "src/features/serviceFlowItemControls.tsx": {
+    "mtime": 1779154052674,
+    "checkpoint": "14c1ccdc-46dd-43a3-b23e-9c14f08467bd",
+    "uuid": "c17b24aa-f3e4-473c-898d-37f3c5e80daa"
+  },
+  "src/pages/service/TradeInPage.tsx": {
+    "mtime": 1779154052674,
+    "checkpoint": "14c1ccdc-46dd-43a3-b23e-9c14f08467bd",
+    "uuid": "acff014a-56b8-4578-8662-2216f099f194"
+  },
+  "README.md": {
+    "mtime": 1779154052674,
+    "checkpoint": "14c1ccdc-46dd-43a3-b23e-9c14f08467bd",
+    "uuid": "290172a7-f3fa-4287-9049-e3d58c151c5b"
+  },
+  "docs/copy-notes.md": {
+    "mtime": 1779154052674,
+    "checkpoint": "14c1ccdc-46dd-43a3-b23e-9c14f08467bd",
+    "uuid": "3b4d890d-b2d1-4100-9feb-ee8ac841be64"
+  },
+  "docs/user-flows.md": {
+    "mtime": 1779154052674,
+    "checkpoint": "14c1ccdc-46dd-43a3-b23e-9c14f08467bd",
+    "uuid": "10225f8a-a9fa-4ed5-99ce-b24b5ddda558"
+  },
+  "docs/ai-instructions.md": {
+    "mtime": 1779154052674,
+    "checkpoint": "14c1ccdc-46dd-43a3-b23e-9c14f08467bd",
+    "uuid": "eaf1ea99-0aa2-4583-9ee9-1d5df10617b6"
+  },
+  "docs/replace-return-ppt-alignment-audit.md": {
+    "mtime": 1779154052674,
+    "checkpoint": "14c1ccdc-46dd-43a3-b23e-9c14f08467bd",
+    "uuid": "baa274c8-2f17-46c5-b97e-217b49f9dd9e"
+  },
+  "src/features/replacement/replacementReasons.ts": {
+    "mtime": 1779153676299,
+    "checkpoint": "d4bb9408-9918-40b3-bb92-b032af819e63",
+    "uuid": "a4b25a63-5840-4086-8bb3-f13c6517338c"
+  },
+  "src/features/replacement/eligibility.ts": {
+    "mtime": 1779145269053,
+    "checkpoint": "060bd1b0-2812-4c88-9cd8-8604ee37bfc4",
+    "uuid": "5dbb33d6-50bb-4cd3-be44-9e4c7e4eaa0c"
+  },
+  "src/features/replacement/phoneFormat.ts": {
+    "mtime": 1779144528843,
+    "checkpoint": "136d7c0b-e964-4add-bc30-faab332d9f67",
+    "uuid": "4a6e72b6-2566-4dd1-a2b6-87c06bc8921b"
+  },
+  "src/features/replacement/reasonValidation.ts": {
+    "mtime": 1779153676299,
+    "checkpoint": "d4bb9408-9918-40b3-bb92-b032af819e63",
+    "uuid": "f3afc98a-81a6-495c-986e-1f8beb66a7d9"
+  },
+  "src/pages/service/ReplaceWizardPage.tsx": {
+    "mtime": 1779144528843,
+    "checkpoint": "136d7c0b-e964-4add-bc30-faab332d9f67",
+    "uuid": "daefe131-0b96-4c3c-979d-c06a327ddfd7"
+  },
+  "src/features/serviceOrder/rmaStatusLabels.ts": {
+    "mtime": 1779157680241,
+    "checkpoint": "0668ffe8-cf09-4cdc-9cb9-3a36574e065a",
+    "uuid": "efee98bf-989d-4704-9de8-922089c64af6"
+  },
+  "src/features/serviceOrder/buildServiceOrderList.ts": {
+    "mtime": 1779157680241,
+    "checkpoint": "0668ffe8-cf09-4cdc-9cb9-3a36574e065a",
+    "uuid": "c9294fec-5dba-412d-9bc6-ead95f11a117"
+  },
+  "src/pages/account/AccountRequestsPage.tsx": {
+    "mtime": 1779157680241,
+    "checkpoint": "0668ffe8-cf09-4cdc-9cb9-3a36574e065a",
+    "uuid": "c92669f6-fe7b-4472-9880-4a91d01880f5"
+  },
+  "src/features/serviceOrder/buildReplacementPendingRma.ts": {
+    "mtime": 1779157680241,
+    "checkpoint": "0668ffe8-cf09-4cdc-9cb9-3a36574e065a",
+    "uuid": "93c245b9-5fb1-4f4c-adc2-0c54894a8299"
+  },
+  ".cursor/rules/ticktalk-service-portal.mdc": {
+    "mtime": 1779144632356,
+    "checkpoint": "b3e1352d-02aa-4fd9-834e-9223f083f26f",
+    "uuid": "a7eb24fd-d20a-44d6-a3c8-ea20473f441f"
+  },
+  "src/pages/service/orderLookupFormat.ts": {
+    "mtime": 1779152272868,
+    "checkpoint": "674f99bb-19de-476e-ad8b-13642f14aae6",
+    "uuid": "bdecd796-f130-4044-b353-47b4fc7e9786"
+  },
+  "src/features/serviceOrder/serviceAccountIdentities.ts": {
+    "mtime": 1779158382551,
+    "checkpoint": "9b4fb294-78ce-406b-8643-9763f3d1e789",
+    "uuid": "ec19f458-3fd9-4b8f-bf4c-953befa593a3"
+  },
+  "src/features/serviceOrder/postReplacementPrefill.ts": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "71f19554-f6bc-4658-84aa-f3c9021b42d8"
+  },
+  "src/features/serviceOrder/types.ts": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "4c292f6d-72dc-482e-91cb-bac006fb43c2"
+  },
+  "src/features/serviceOrder/serviceAuthCopy.ts": {
+    "mtime": 1779158382551,
+    "checkpoint": "9b4fb294-78ce-406b-8643-9763f3d1e789",
+    "uuid": "79286510-7823-4a7e-a36a-5eed8d14790d"
+  },
+  "src/features/serviceOrder/attachPendingServiceRma.ts": {
+    "mtime": 1779158382551,
+    "checkpoint": "9b4fb294-78ce-406b-8643-9763f3d1e789",
+    "uuid": "f0fcc75b-8de2-49da-bf11-7e886404d981"
+  },
+  "docs/SERVICE_ORDER_DUPLICATE_SIGNUP.md": {
+    "mtime": 1779158382551,
+    "checkpoint": "9b4fb294-78ce-406b-8643-9763f3d1e789",
+    "uuid": "7cfcd174-6ca6-4e89-b6da-794a4acf83e9"
+  },
+  "src/ui/supportTheme.ts": {
+    "mtime": 1779154632585,
+    "checkpoint": "be8c55b4-2c7a-4150-a3c2-1249a530ae88",
+    "uuid": "3f13fc8f-5bb5-4c3a-b15b-8be2a32b855a"
+  },
+  "index.html": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "00f8ecf6-e9a7-40ec-8ef5-cef5bc180a19"
+  },
+  "src/features/serviceOrder/ServiceOrderAccountContext.tsx": {
+    "mtime": 1779155029864,
+    "checkpoint": "b5816ba9-6708-4bdc-ab1a-5f5726efca3c",
+    "uuid": "f6cf081d-7fb3-491e-b94b-4286f0e8f0ac"
+  },
+  "src/components/ServiceMessageModal.tsx": {
+    "mtime": 1779155029864,
+    "checkpoint": "b5816ba9-6708-4bdc-ab1a-5f5726efca3c",
+    "uuid": "80a14905-628d-4ef6-9024-46ee15094001"
+  },
+  "src/components/ServiceToast.tsx": {
+    "mtime": 1779155029864,
+    "checkpoint": "b5816ba9-6708-4bdc-ab1a-5f5726efca3c",
+    "uuid": "ac5599ff-f844-425a-a98d-736a23f592ad"
+  },
+  "src/components/ServiceAuthModeTabs.tsx": {
+    "mtime": 1779155029864,
+    "checkpoint": "b5816ba9-6708-4bdc-ab1a-5f5726efca3c",
+    "uuid": "41181cb5-ce25-4845-9bd6-584dd069b95a"
+  },
+  "src/pages/service/ServiceSignupPage.tsx": {
+    "mtime": 1779155029864,
+    "checkpoint": "b5816ba9-6708-4bdc-ab1a-5f5726efca3c",
+    "uuid": "efacc639-0b00-4180-b4df-1d349856e092"
+  },
+  "src/mock-data/rmas.ts": {
+    "mtime": 1779155029864,
+    "checkpoint": "b5816ba9-6708-4bdc-ab1a-5f5726efca3c",
+    "uuid": "bb590fb5-c058-4db3-95ff-7129a673eac0"
+  },
+  "src/mock-data/replacementRequests.ts": {
+    "mtime": 1779155029864,
+    "checkpoint": "b5816ba9-6708-4bdc-ab1a-5f5726efca3c",
+    "uuid": "8d8ddf38-aa7e-4507-97e6-48800426997e"
+  },
+  "src/main.tsx": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "1ee62516-54a5-4ceb-8136-3f7947c4c493"
+  },
+  "src/App.tsx": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "cd8e1177-6b15-4bd8-9d14-b898e420455f"
+  },
+  "src/pages/service/ServiceLoginPage.tsx": {
+    "mtime": 1779155029864,
+    "checkpoint": "b5816ba9-6708-4bdc-ab1a-5f5726efca3c",
+    "uuid": "e9b113ec-73f4-4a60-8775-bbdc5be26336"
+  },
+  "src/pages/service/ServiceContactPage.tsx": {
+    "mtime": 1779155029864,
+    "checkpoint": "b5816ba9-6708-4bdc-ab1a-5f5726efca3c",
+    "uuid": "d797bdc4-e35c-4ac5-85d7-6fae22689cee"
+  },
+  "src/pages/account/AccountRmaDetailPage.tsx": {
+    "mtime": 1779155029864,
+    "checkpoint": "b5816ba9-6708-4bdc-ab1a-5f5726efca3c",
+    "uuid": "6e233093-0a66-488e-9738-a705d0c46ce4"
+  },
+  "src/mock-data/orders.ts": {
+    "mtime": 1779152548930,
+    "checkpoint": "96f6946a-b6d7-4ac4-8a6c-12b0f66051c8",
+    "uuid": "a8c66b2c-4045-4930-b609-ae62352e0ecf"
+  },
+  "src/mock-data/orderLines.ts": {
+    "mtime": 1779145269053,
+    "checkpoint": "060bd1b0-2812-4c88-9cd8-8604ee37bfc4",
+    "uuid": "267fbd88-d915-4459-898b-ec6e45613f79"
+  },
+  "src/features/return/returnConstants.ts": {
+    "mtime": 1779145016646,
+    "checkpoint": "63e4f91b-25e1-48ff-b70a-9f4db354fa85",
+    "uuid": "9e707b14-e5d1-4b89-8c37-7a2f55795c13"
+  },
+  "src/features/return/returnEligibility.ts": {
+    "mtime": 1779145269053,
+    "checkpoint": "060bd1b0-2812-4c88-9cd8-8604ee37bfc4",
+    "uuid": "38ef0f22-bada-41d0-ba18-6a5ea7eb6282"
+  },
+  "src/features/return/returnReasons.ts": {
+    "mtime": 1779145016646,
+    "checkpoint": "63e4f91b-25e1-48ff-b70a-9f4db354fa85",
+    "uuid": "a5e7242a-79fd-4128-8420-37a7db622f98"
+  },
+  "src/pages/service/ReturnWizardPage.tsx": {
+    "mtime": 1779145016646,
+    "checkpoint": "63e4f91b-25e1-48ff-b70a-9f4db354fa85",
+    "uuid": "989e5803-69e5-4c56-be67-f2a2bd5aa6a7"
+  },
+  "docs/requirements.md": {
+    "mtime": 1779143909024,
+    "checkpoint": "ae5e85e1-ecc7-4af2-b314-bd2abba19cef",
+    "uuid": "f35d241d-b24f-4940-9fd6-7c9be4a8db01"
+  },
+  "docs/database-draft.md": {
+    "mtime": 1779143909024,
+    "checkpoint": "ae5e85e1-ecc7-4af2-b314-bd2abba19cef",
+    "uuid": "8e5a64d2-3066-48ac-a5b7-271d83f8f17d"
+  },
+  "package.json": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "0f355d78-f988-40e1-a563-a18804ebfea8"
+  },
+  "vite.config.ts": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "cf803af7-7bf0-46fb-80f1-2cfa02a32293"
+  },
+  "postcss.config.js": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "3e1c3370-8203-4b81-be36-7c39583d047c"
+  },
+  "tsconfig.json": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "84a581c1-b9e1-48f4-a8e3-fba4bbb9bc60"
+  },
+  "tsconfig.app.json": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "4002a35a-f93f-48a9-947a-81f91bfac280"
+  },
+  "tsconfig.node.json": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "86f0f0fd-93d7-45e0-a69b-c9a281657abe"
+  },
+  "src/vite-env.d.ts": {
+    "mtime": 1779158911712,
+    "checkpoint": "6e564b9d-6701-425d-a502-e37356c635ee",
+    "uuid": "b471b7d6-70e2-496c-8bd8-d3ed314e1aa6"
+  },
+  ".gitignore": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "bacf0b22-7ebc-4663-ac33-980baa34e095"
+  },
+  "src/utils/cn.ts": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "a7c0c44a-663e-4cfb-a27e-0cda0f099ec7"
+  },
+  "src/mock-data/carePlusSubscriptions.ts": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "d6948f37-5b0b-400d-8ea6-7ca34521fb9e"
+  },
+  "src/mock-data/customers.ts": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "70f26a96-e145-43c0-bf30-340bedd8dd13"
+  },
+  "src/mock-data/imeis.ts": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "1260afc6-724a-4130-af80-993c1bcb3db3"
+  },
+  "src/mock-data/messages.ts": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "85d33ec4-fc3c-47c5-97cd-29535e019f1f"
+  },
+  "src/mock-data/products.ts": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "36fc5e1c-58bd-4e8e-ae65-0d661a786ec1"
+  },
+  "src/mock-data/returnRequests.ts": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "2b4b2ad4-ec2f-4a95-8e1c-823212579422"
+  },
+  "src/mock-data/tradeInRequests.ts": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "2eba0a02-b5f9-4a2a-8335-ebbb90e17825"
+  },
+  "src/mock-data/warranties.ts": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "3d2f00a0-13fd-410f-86b5-813a2473f125"
+  },
+  "src/mock-data/index.ts": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "a6dbece9-accd-4c0f-963d-f4270f59b0a8"
+  },
+  "src/components/OrderCard.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "5cf29dc4-4c89-48fd-b56b-f84c281133fb"
+  },
+  "src/components/RmaCard.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "503af2ad-3ff3-4faf-b8d8-29984b28dea0"
+  },
+  "src/components/EmptyState.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "98abdb53-ec95-4509-b10b-8bd85d76e82d"
+  },
+  "src/pages/HomePage.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "9cba0b65-9dba-4a21-b2b9-5e2f2391357a"
+  },
+  "src/pages/service/ServiceHubPage.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "ab373460-76fa-4e80-9fad-7f21aa06d13d"
+  },
+  "src/pages/service/ServiceNewPage.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "dd5b791a-9913-4afd-8a65-e13c95080d3c"
+  },
+  "src/pages/service/PreviewPage.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "3a696385-86bc-4a06-8925-33aeac99ea96"
+  },
+  "src/pages/service/ConfirmationPage.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "cd1f585f-c4ae-4295-8fce-fd68f845f3de"
+  },
+  "src/pages/admin/AdminDashboardPage.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "632cc27f-0191-403d-b5cf-59f12f6aa044"
+  },
+  "src/pages/admin/AdminOrdersPage.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "ed0979a9-e62e-4b9a-a477-5e205f354be7"
+  },
+  "src/pages/admin/AdminReturnsPage.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "a676ef65-b94b-4f6f-bfb8-2af28bc26f5b"
+  },
+  "src/pages/admin/AdminReplacementsPage.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "4033f87c-aa3a-4bbe-a3ac-8c1802c323c3"
+  },
+  "src/pages/admin/AdminTradeInsPage.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "0ad5821a-55b3-48a0-ae3d-1fe579344944"
+  },
+  "src/pages/admin/AdminRmaDetailPage.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "3383acbb-8d1b-4bc1-90a1-76e33c9e4b15"
+  },
+  "src/pages/admin/AdminInventoryPage.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "c9b2fc37-5c69-4dd6-b34d-7392c08518de"
+  },
+  "src/pages/admin/AdminMessagesPage.tsx": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "2fcfd5e7-b316-4cd5-8372-c54d9b06b548"
+  },
+  "src/styles/.gitkeep": {
+    "mtime": 1779144182947,
+    "checkpoint": "3ccaf2ec-4270-40ec-a378-3631ea5607f6",
+    "uuid": "a3ad5941-d6fc-4978-98ab-582b55410a97"
+  }
+}
