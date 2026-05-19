@@ -30,7 +30,7 @@ export function emptyReturnReasonForm(): PerLineReturnReason {
 
 export function isReturnReasonComplete(form: PerLineReturnReason): boolean {
   if (!form.reasonId) return false;
-  if (form.reasonId === 'other') return form.otherNote.trim().length >= 3;
+  if (form.reasonId === 'other') return (form.otherNote ?? '').trim().length >= 3;
   return true;
 }
 

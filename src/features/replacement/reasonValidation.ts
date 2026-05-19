@@ -26,6 +26,22 @@ export function emptyReasonForm(): PerItemReasonForm {
   };
 }
 
+/** Merge partial / recovered state into a complete form (avoids stale checkpoint shapes). */
+export function normalizePerItemReasonForm(state: Partial<PerItemReasonForm> | undefined): PerItemReasonForm {
+  const base = emptyReasonForm();
+  if (!state) return base;
+  return {
+    ...base,
+    ...state,
+    followUps: state.followUps ?? base.followUps,
+    mockUploads: Array.isArray(state.mockUploads) ? state.mockUploads : base.mockUploads,
+    uploadSectionOpen: state.uploadSectionOpen ?? base.uploadSectionOpen,
+    photoAck: state.photoAck ?? base.photoAck,
+    description: state.description ?? base.description,
+    reasonId: state.reasonId ?? base.reasonId,
+  };
+}
+
 function carePlusReasonSatisfied(def: ReplacementReasonDef, carePlusVerified: boolean): boolean {
   if (!def.carePlusOnly) return true;
   return carePlusVerified;
@@ -36,19 +52,20 @@ export function isReasonFormComplete(
   state: PerItemReasonForm,
   carePlusVerified: boolean,
 ): boolean {
+  const st = normalizePerItemReasonForm(state);
   if (!def) return false;
-  if (!state.reasonId) return false;
+  if (!st.reasonId) return false;
   if (!carePlusReasonSatisfied(def, carePlusVerified)) return false;
 
-  if (def.completion.requireDescription && !state.description.trim()) return false;
+  if (def.completion.requireDescription && !st.description.trim()) return false;
 
   if (def.completion.requireDescriptionOrUpload) {
-    const hasDesc = state.description.trim().length > 0;
-    const hasU = state.mockUploads.length > 0;
+    const hasDesc = st.description.trim().length > 0;
+    const hasU = st.mockUploads.length > 0;
     if (!hasDesc && !hasU) return false;
   }
 
-  if (def.description.mode === 'required' && !state.description.trim()) return false;
+  if (def.description.mode === 'required' && !st.description.trim()) return false;
 
   return true;
 }
@@ -59,7 +76,7 @@ export function allSelectionsHaveCompleteReasons(
   carePlusVerified: boolean,
 ): boolean {
   return lineIds.every((id) => {
-    const st = reasonByLineId[id] ?? emptyReasonForm();
+    const st = normalizePerItemReasonForm(reasonByLineId[id]);
     const def = getReplacementReason(st.reasonId);
     return isReasonFormComplete(def, st, carePlusVerified);
   });

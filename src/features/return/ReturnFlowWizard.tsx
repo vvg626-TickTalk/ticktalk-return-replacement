@@ -164,7 +164,7 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
       if (!isPlausibleImei(raw)) return false;
     }
     return true;
-  }, [expandedLineIds, imeiByLineId, lines, primaryIds.length]);
+  }, [expandedLineIds, imeiByLineId, lines, primaryIds]);
 
   const canLeaveReasons = useMemo(
     () => allReturnReasonsComplete(expandedLineIds, reasonByLineId),

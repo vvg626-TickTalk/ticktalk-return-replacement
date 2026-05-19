@@ -50,7 +50,6 @@ export function CarePlusVerifyForm({
   const [devicePhone, setDevicePhone] = useState(defaultDevicePhone);
   const [parentAccount, setParentAccount] = useState(defaultParentAccount);
   const [code, setCode] = useState('');
-  const [sent, setSent] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +76,6 @@ export function CarePlusVerifyForm({
   const send = () => {
     setError(null);
     if (!canSend) return;
-    setSent(true);
     setSecondsLeft(300);
     setToast('Code sent. Please enter it within 5 minutes.');
   };
@@ -175,7 +173,7 @@ export function CarePlusVerifyForm({
       <FormField
         id="care-code"
         label="Verification code"
-        hint="Preview: enter any six digits except the magic error codes shown in QA tools."
+        hint="Enter the 6-digit code (demo: any six digits except 120001–120005 when QA is Auto)."
         error={error ?? undefined}
       >
         <input
@@ -220,7 +218,7 @@ export function CarePlusVerifyForm({
         <Button type="button" variant="secondary" className="min-h-12 w-full sm:w-auto" onClick={onCancel}>
           Back
         </Button>
-        <Button type="button" className="min-h-12 w-full sm:w-auto" disabled={!sent || code.trim().length < 6} onClick={submit}>
+        <Button type="button" className="min-h-12 w-full sm:w-auto" disabled={code.trim().length < 6} onClick={submit}>
           Verify
         </Button>
       </div>

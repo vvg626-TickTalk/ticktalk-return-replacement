@@ -1,7 +1,7 @@
 import type { ReplacementReasonDef, ReplacementReasonId } from '@/features/replacement/replacementReasons';
 import { REPLACEMENT_REASONS } from '@/features/replacement/replacementReasons';
 import type { MockUploadItem, PerItemReasonForm } from '@/features/replacement/reasonValidation';
-import { emptyReasonForm } from '@/features/replacement/reasonValidation';
+import { emptyReasonForm, normalizePerItemReasonForm } from '@/features/replacement/reasonValidation';
 import { supportTextarea } from '@/ui/supportPortalLayout';
 import { cn } from '@/utils/cn';
 
@@ -188,6 +188,8 @@ export function ReasonFields({
   carePlusVerified,
   supportPortal,
 }: ReasonFieldsProps) {
+  const safeValue = normalizePerItemReasonForm(value);
+
   const selectReason = (id: ReplacementReasonId) => {
     const def = REPLACEMENT_REASONS.find((r) => r.id === id);
     if (def?.carePlusOnly && !carePlusVerified) {
@@ -211,7 +213,7 @@ export function ReasonFields({
         <legend className="sr-only">Issue for this item</legend>
         <div className="space-y-0 divide-y divide-slate-200">
           {REPLACEMENT_REASONS.map((r) => {
-            const selected = value.reasonId === r.id;
+            const selected = safeValue.reasonId === r.id;
             return (
               <div key={r.id} className="py-2 first:pt-0">
                 <label
@@ -248,7 +250,7 @@ export function ReasonFields({
                     ) : null}
                   </span>
                 </label>
-                {selected ? <ExpandedReasonBody def={r} value={value} onChange={onChange} /> : null}
+                {selected ? <ExpandedReasonBody def={r} value={safeValue} onChange={onChange} /> : null}
               </div>
             );
           })}

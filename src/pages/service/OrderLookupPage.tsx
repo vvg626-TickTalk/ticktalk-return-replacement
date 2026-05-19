@@ -89,20 +89,21 @@ export function OrderLookupPage() {
 
   const setSegment = useCallback(
     (index: number, value: string) => {
-      const def = format.segments[index];
+      const fmt = ORDER_LOOKUP_BY_ID[channelId];
+      const def = fmt.segments[index];
       if (!def) return;
       const next = sanitizeSegment(value, def);
       setSegments((prev) => {
         const copy = [...prev];
         copy[index] = next;
-        while (copy.length < format.segments.length) copy.push('');
+        while (copy.length < fmt.segments.length) copy.push('');
         return copy;
       });
-      if (next.length === def.maxLength && index < format.segments.length - 1) {
+      if (next.length === def.maxLength && index < fmt.segments.length - 1) {
         queueMicrotask(() => inputRefs.current[index + 1]?.focus());
       }
     },
-    [format.segments],
+    [channelId],
   );
 
   const goToDetails = () => {
@@ -137,7 +138,8 @@ export function OrderLookupPage() {
     if (!parsed) return;
     e.preventDefault();
     setSegments(parsed);
-    const firstShort = parsed.findIndex((p, i) => p.length < (format.segments[i]?.maxLength ?? 0));
+    const fmt = ORDER_LOOKUP_BY_ID[channelId];
+    const firstShort = parsed.findIndex((p, i) => p.length < (fmt.segments[i]?.maxLength ?? 0));
     const focusIdx = firstShort === -1 ? parsed.length - 1 : firstShort;
     queueMicrotask(() => inputRefs.current[focusIdx]?.focus());
   };

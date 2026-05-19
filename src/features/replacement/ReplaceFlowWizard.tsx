@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Order, OrderLine } from '@/types/models';
 import { Button } from '@/components/Button';
@@ -34,6 +34,7 @@ import {
 import {
   allSelectionsHaveCompleteReasons,
   emptyReasonForm,
+  normalizePerItemReasonForm,
   type PerItemReasonForm,
 } from '@/features/replacement/reasonValidation';
 import { analyzeReplacementSubmit, type ReplacementStockOption } from '@/features/replacement/replacementInventory';
@@ -159,6 +160,11 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
   const [removeIndex, setRemoveIndex] = useState<number | null>(null);
 
   const [carePlus, setCarePlus] = useState<CarePlusModalState>(null);
+  const carePlusRef = useRef<CarePlusModalState>(null);
+
+  useEffect(() => {
+    carePlusRef.current = carePlus;
+  }, [carePlus]);
 
   const [previewDeleteIndex, setPreviewDeleteIndex] = useState<number | null>(null);
 
@@ -545,7 +551,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
               const line = lines.find((l) => l.id === s.orderLineId);
               if (!line) return null;
               const label = labelForLine(line);
-              const st = reasonByLineId[s.orderLineId] ?? emptyReasonForm();
+              const st = normalizePerItemReasonForm(reasonByLineId[s.orderLineId]);
               return (
                 <div key={s.orderLineId} className="px-2 py-2">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">{label}</p>
@@ -732,7 +738,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
             {selections.map((s, idx) => {
               const line = lines.find((l) => l.id === s.orderLineId);
               const p = line ? getProductById(line.productId) : undefined;
-              const st = reasonByLineId[s.orderLineId] ?? emptyReasonForm();
+              const st = normalizePerItemReasonForm(reasonByLineId[s.orderLineId]);
               if (!line || !p) return null;
               return (
                 <div
@@ -1123,10 +1129,11 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
         <CarePlusVerifyForm
           onCancel={() => setCarePlus((c) => (c ? { ...c, phase: 'gate' } : c))}
           onVerified={() => {
-            if (!carePlus) return;
+            const c = carePlusRef.current;
+            if (!c || c.phase !== 'verify') return;
             setReasonByLineId((prev) => ({
               ...prev,
-              [carePlus.lineId]: { ...emptyReasonForm(), reasonId: carePlus.reasonId },
+              [c.lineId]: { ...emptyReasonForm(), reasonId: c.reasonId },
             }));
             setCarePlusVerified(true);
             setCarePlus(null);

@@ -2,7 +2,7 @@ import type { Order, OrderLine } from '@/types/models';
 import { getProductById } from '@/mock-data';
 import { getReplacementReason } from '@/features/replacement/replacementReasons';
 import type { PerItemReasonForm } from '@/features/replacement/reasonValidation';
-import { emptyReasonForm } from '@/features/replacement/reasonValidation';
+import { normalizePerItemReasonForm } from '@/features/replacement/reasonValidation';
 import type { RegisteredServiceRma } from '@/features/serviceOrder/types';
 import { RMA_STATUS_CUSTOMER_LABEL } from '@/features/serviceOrder/rmaStatusLabels';
 
@@ -48,7 +48,7 @@ export function buildReplacementPendingRma(params: {
   }
 
   const issueParts = selections.map((s) => {
-    const st = reasonByLineId[s.orderLineId] ?? emptyReasonForm();
+    const st = normalizePerItemReasonForm(reasonByLineId[s.orderLineId]);
     const def = getReplacementReason(st.reasonId);
     const note = st.description.trim() || def?.previewSummary || '';
     return def ? `${def.label}: ${note}` : note;
