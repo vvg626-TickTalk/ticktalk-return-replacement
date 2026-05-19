@@ -1,4 +1,4 @@
-/** Replacement issue taxonomy — guided troubleshooting copy (PPT-aligned). */
+/** Replacement issue taxonomy — PPT pages 14–39 (per-reason UX; not a generic form). */
 
 export type ReplacementReasonId =
   | 'screen_spot_line'
@@ -15,32 +15,42 @@ export type ReplacementReasonId =
 
 export type ReasonUploadType = 'none' | 'progressive' | 'behind_link';
 
+/** Photo-only vs photo/video for progressive CTA copy and thumbnails. */
+export type ProgressiveUploadKind = 'photo' | 'file';
+
 export type ReplacementReasonDef = {
   id: ReplacementReasonId;
-  /** Primary title (radio label) */
   label: string;
   subtitle?: string;
   previewSummary: string;
   carePlusOnly?: boolean;
+  /** Shown in bordered follow-up block (above textarea). */
   introLines?: string[];
-  whenStartedLabel?: string;
   policyNote?: string;
   footerDisclaimer?: string;
   description: {
     mode: 'hidden' | 'optional' | 'required';
     placeholder: string;
   };
+  /** Hint above textarea (e.g. Care+ sections). */
+  descriptionHelper?: string;
+  /** Secondary line under radio; omitted when Care+ modal handles gating. */
+  shortHint?: string;
   upload: {
     type: ReasonUploadType;
     helper?: string;
     primaryCta?: string;
+    addAnotherCta?: string;
     linkText?: string;
     recommended?: boolean;
+    progressiveKind?: ProgressiveUploadKind;
   };
   completion: {
     requireDescription?: boolean;
     requireDescriptionOrUpload?: boolean;
   };
+  /** After Care+ verify — badge in expanded section. */
+  showCarePlusBadge?: boolean;
 };
 
 export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
@@ -49,12 +59,14 @@ export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
     label: 'Pixelated Screen / Lines on Screen',
     subtitle: '(No physical damage)',
     previewSummary: 'Display shows pixels or lines without physical damage.',
-    whenStartedLabel: 'When did the issue start?',
-    description: { mode: 'optional', placeholder: 'Briefly describe the issue (optional if you add a photo)' },
+    introLines: ['When did the issue start?', 'Have you tried restarting the watch?'],
+    description: { mode: 'optional', placeholder: 'Describe the issue…' },
     upload: {
       type: 'progressive',
-      helper: 'One clear photo can replace a written description.',
-      primaryCta: 'Upload photo',
+      helper: 'Clear photo of the screen while powered on.',
+      primaryCta: '+ Add photo',
+      addAnotherCta: '+ Add another upload',
+      progressiveKind: 'photo',
       recommended: false,
     },
     completion: { requireDescriptionOrUpload: true },
@@ -62,16 +74,15 @@ export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
   {
     id: 'screen_cracked',
     label: 'Cracked or Broken Screen',
-    subtitle: '(Care+ only)',
+    subtitle: '(Care+ · TT5)',
     previewSummary: 'Cracked or broken screen.',
     carePlusOnly: true,
-    description: { mode: 'optional', placeholder: 'Briefly describe how the damage happened' },
-    upload: {
-      type: 'progressive',
-      primaryCta: 'Upload photo',
-      recommended: false,
-    },
-    completion: {},
+    shortHint: 'TickTalk 5 with Care+ only in this flow.',
+    description: { mode: 'required', placeholder: 'Describe the issue…' },
+    descriptionHelper: 'Briefly describe how the damage occurred.',
+    upload: { type: 'none' },
+    completion: { requireDescription: true },
+    showCarePlusBadge: true,
   },
   {
     id: 'no_power',
@@ -79,11 +90,12 @@ export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
     subtitle: '(Won’t turn on)',
     previewSummary: 'Won’t power on or charge.',
     introLines: [
-      'Does the screen respond when plugged in? Have you tried another original charging cable?',
+      'Does the screen respond when plugged in?',
+      'Have you tried another original charging cable?',
     ],
-    description: { mode: 'required', placeholder: 'Describe what happens when you charge it' },
+    description: { mode: 'required', placeholder: 'Describe the issue…' },
     upload: { type: 'none' },
-    footerDisclaimer: 'Our team may request additional photos if needed.',
+    footerDisclaimer: 'Our support team may request additional photos later if needed.',
     completion: { requireDescription: true },
   },
   {
@@ -91,59 +103,67 @@ export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
     label: 'Hardware Component Failure',
     subtitle: '(Buttons / Speaker / Mic)',
     previewSummary: 'Button, speaker, or microphone problem.',
-    introLines: ['Which button or function is not working?'],
-    description: { mode: 'required', placeholder: 'Describe the issue' },
+    introLines: ['Which function is failing?', '(button, speaker, microphone, etc.)'],
+    description: { mode: 'required', placeholder: 'Describe the issue…' },
     upload: { type: 'none' },
+    footerDisclaimer: 'Our team may request additional media later if needed.',
     completion: { requireDescription: true },
   },
   {
     id: 'battery_hot',
     label: 'Battery Overheating',
     previewSummary: 'Battery runs hot.',
-    introLines: ['Does it overheat while charging or during use?'],
-    description: { mode: 'required', placeholder: 'Describe the overheating issue' },
+    introLines: [
+      'Does it overheat while charging or during use?',
+      'Any odor or casing deformation?',
+    ],
+    description: { mode: 'required', placeholder: 'Describe the issue…' },
     upload: { type: 'none' },
     completion: { requireDescription: true },
   },
   {
     id: 'water_damage',
     label: 'Water Damage',
-    subtitle: '(Care+ only)',
+    subtitle: '(Care+ · TT5)',
     previewSummary: 'Liquid or water damage.',
     carePlusOnly: true,
-    description: { mode: 'optional', placeholder: 'Briefly describe what happened' },
-    upload: {
-      type: 'behind_link',
-      linkText: 'Add photo (optional)',
-    },
-    completion: {},
+    shortHint: 'TickTalk 5 with Care+ only in this flow.',
+    description: { mode: 'required', placeholder: 'Describe the issue…' },
+    descriptionHelper: 'Describe how the water exposure happened.',
+    upload: { type: 'none' },
+    completion: { requireDescription: true },
+    showCarePlusBadge: true,
   },
   {
     id: 'band_wristband_only',
-    label: 'Broken wristband only',
+    label: 'Broken Wristband Only',
     previewSummary: 'Wristband damage only.',
-    policyNote: 'Wristbands are wearable accessories and have limited coverage.',
-    description: { mode: 'required', placeholder: 'Describe the damaged area' },
+    policyNote: 'Wristbands are wearable accessories with limited warranty coverage.',
+    description: { mode: 'required', placeholder: 'Describe the issue…' },
     upload: {
       type: 'progressive',
-      helper: 'Photo recommended.',
-      primaryCta: 'Upload photo',
+      helper: 'Photo optional but recommended.',
+      primaryCta: '+ Add photo',
+      addAnotherCta: '+ Add another upload',
+      progressiveKind: 'photo',
       recommended: true,
     },
     completion: { requireDescription: true },
   },
   {
     id: 'band_connector_body',
-    label: 'Connector / body damage',
-    previewSummary: 'Connector or watch body damage.',
+    label: 'Connector / Watch Body Damage',
+    previewSummary: 'Connector or body damage.',
     policyNote:
-      'Coverage may differ for standard warranty and TickTalk Care+. You may still submit this request. Our support team will review it.',
-    description: { mode: 'required', placeholder: 'Describe the damaged area' },
+      'Coverage differs for standard warranty and TickTalk Care+. All requests are reviewed by our support team individually.',
+    description: { mode: 'required', placeholder: 'Describe the issue…' },
     upload: {
       type: 'progressive',
-      helper: 'Photo recommended.',
-      primaryCta: 'Upload photo',
-      recommended: true,
+      helper: 'Photo optional.',
+      primaryCta: '+ Add photo',
+      addAnotherCta: '+ Add another upload',
+      progressiveKind: 'photo',
+      recommended: false,
     },
     completion: { requireDescription: true },
   },
@@ -151,12 +171,14 @@ export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
     id: 'wrong_item',
     label: 'Wrong Item / Color / Quantity',
     previewSummary: 'Wrong item, color, or quantity.',
-    introLines: ['What was incorrect or missing?'],
-    description: { mode: 'required', placeholder: 'Describe what you received' },
+    introLines: ['What did you receive and what is missing?'],
+    description: { mode: 'required', placeholder: 'Describe the issue…' },
     upload: {
       type: 'progressive',
-      helper: 'Received items and shipping label — recommended.',
-      primaryCta: 'Upload photo',
+      helper: 'Photo of all received items and the shipping label.',
+      primaryCta: '+ Add photo',
+      addAnotherCta: '+ Add another upload',
+      progressiveKind: 'photo',
       recommended: true,
     },
     completion: { requireDescription: true },
@@ -166,12 +188,14 @@ export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
     label: 'Damaged Upon Arrival',
     subtitle: '(Product & packaging)',
     previewSummary: 'Damage when the package arrived.',
-    introLines: ['Was the package visibly damaged when received?'],
-    description: { mode: 'required', placeholder: 'Describe the damage' },
+    introLines: ['Was the packaging visibly damaged?'],
+    description: { mode: 'required', placeholder: 'Describe the issue…' },
     upload: {
       type: 'progressive',
-      helper: 'Damaged product and packaging — recommended.',
-      primaryCta: 'Upload photo',
+      helper: 'Damaged product and packaging.',
+      primaryCta: '+ Add photo',
+      addAnotherCta: '+ Add another upload',
+      progressiveKind: 'photo',
       recommended: true,
     },
     completion: { requireDescription: true },
@@ -180,11 +204,15 @@ export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
     id: 'other',
     label: 'Other Issue',
     previewSummary: 'Other issue.',
-    introLines: ['Please describe the issue.'],
-    description: { mode: 'required', placeholder: 'Describe your issue' },
+    introLines: ['Describe the issue in detail.'],
+    description: { mode: 'required', placeholder: 'Describe the issue…' },
     upload: {
       type: 'behind_link',
-      linkText: 'Add upload (optional)',
+      linkText: '+ Add file',
+      primaryCta: '+ Add file',
+      addAnotherCta: '+ Add another upload',
+      helper: 'Photos or videos if they help explain.',
+      progressiveKind: 'file',
     },
     completion: { requireDescription: true },
   },

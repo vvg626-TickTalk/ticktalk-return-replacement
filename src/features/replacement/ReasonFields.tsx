@@ -7,6 +7,10 @@ import { cn } from '@/utils/cn';
 
 const MAX_UPLOADS = 3;
 
+const followUpBox = 'rounded-xl border border-slate-200/90 bg-slate-50/50 px-3 py-2.5';
+const textareaShell = 'rounded-xl border border-slate-200/90 bg-white px-3 py-2 focus-within:ring-2 focus-within:ring-support-navy/10';
+const disclaimerBox = 'rounded-xl border border-slate-200/70 bg-slate-50/60 px-3 py-2';
+
 function createMockUpload(index: number): MockUploadItem {
   return { id: `demo-${index}-${Math.random().toString(36).slice(2, 7)}`, label: String(index) };
 }
@@ -15,16 +19,16 @@ function ProgressiveUploadBlock({
   value,
   onChange,
   primaryCta,
-  addAnotherLabel = 'Add another file',
+  addAnotherCta = '+ Add another upload',
   helper,
-  isVideo,
+  kind = 'photo',
 }: {
   value: PerItemReasonForm;
   onChange: (next: PerItemReasonForm) => void;
   primaryCta: string;
-  addAnotherLabel?: string;
+  addAnotherCta?: string;
   helper?: string;
-  isVideo?: boolean;
+  kind?: 'photo' | 'file';
 }) {
   const add = () => {
     if (value.mockUploads.length >= MAX_UPLOADS) return;
@@ -42,22 +46,26 @@ function ProgressiveUploadBlock({
     });
   };
 
+  const thumbLabel = kind === 'file' ? 'File' : 'Img';
+
   return (
     <div className="mt-2 space-y-2">
       {helper ? (
-        <p className="text-[11px] leading-snug text-slate-500">{helper}</p>
+        <div className={disclaimerBox}>
+          <p className="text-[11px] leading-snug text-slate-600">{helper}</p>
+        </div>
       ) : null}
       <div className="flex flex-wrap items-end gap-2">
         {value.mockUploads.map((u, i) => (
           <div
             key={u.id}
-            className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-sm border border-slate-300 bg-slate-100 text-[10px] font-medium text-slate-600"
+            className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-[10px] font-medium text-slate-600"
           >
             <span className="sr-only">
-              {isVideo ? 'Video' : 'Photo'} {u.label}
+              {kind === 'file' ? 'File' : 'Photo'} {u.label}
             </span>
             <span aria-hidden className="text-[9px] font-medium uppercase tracking-wide text-slate-400">
-              {isVideo ? 'Vid' : 'Img'}
+              {thumbLabel}
             </span>
             <button
               type="button"
@@ -73,9 +81,9 @@ function ProgressiveUploadBlock({
           <button
             type="button"
             onClick={add}
-            className="min-h-10 rounded-sm border border-dashed border-slate-300 bg-white px-3 text-[11px] font-medium text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+            className="inline-flex min-h-10 items-center justify-center rounded-lg border border-dashed border-support-navy/35 bg-white px-3 text-[12px] font-semibold text-support-navy hover:bg-slate-50"
           >
-            {value.mockUploads.length === 0 ? primaryCta : addAnotherLabel}
+            {value.mockUploads.length === 0 ? primaryCta : addAnotherCta}
           </button>
         ) : null}
       </div>
@@ -87,62 +95,76 @@ function ExpandedReasonBody({
   def,
   value,
   onChange,
+  carePlusVerified,
 }: {
   def: ReplacementReasonDef;
   value: PerItemReasonForm;
   onChange: (next: PerItemReasonForm) => void;
+  carePlusVerified: boolean;
 }) {
   const patch = (partial: Partial<PerItemReasonForm>) => onChange({ ...value, ...partial });
 
   const showDesc = def.description.mode !== 'hidden';
   const up = def.upload;
 
-  const progressive = (primary: string, helper?: string, isVideo?: boolean) => (
+  const progressive = (primary: string, helper?: string, kind: 'photo' | 'file' = 'photo') => (
     <ProgressiveUploadBlock
       value={value}
       onChange={onChange}
       primaryCta={primary}
+      addAnotherCta={up.addAnotherCta}
       helper={helper}
-      isVideo={isVideo}
+      kind={kind}
     />
   );
 
   return (
-    <div className="mt-2 space-y-3 border-l-2 border-slate-200 pl-3">
+    <div className="mt-2 space-y-3 pl-0.5">
       {def.policyNote ? (
-        <p className="text-[11px] leading-snug text-slate-600">{def.policyNote}</p>
-      ) : null}
-      {def.introLines?.length ? (
-        <div className="space-y-1">
-          {def.introLines.map((line) => (
-            <p key={line} className="text-[11px] leading-snug text-slate-700">
-              {line}
-            </p>
-          ))}
+        <div className={followUpBox}>
+          <p className="text-[11px] font-medium leading-snug text-slate-800">{def.policyNote}</p>
         </div>
       ) : null}
+
+      {def.introLines?.length ? (
+        <div className={followUpBox}>
+          <div className="space-y-1">
+            {def.introLines.map((line) => (
+              <p key={line} className="text-[11px] leading-snug text-slate-700">
+                {line}
+              </p>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {def.showCarePlusBadge && carePlusVerified ? (
+        <span className="inline-flex rounded-lg bg-support-tint px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-support-navy ring-1 ring-support-navy/12">
+          Covered by TickTalk Care+
+        </span>
+      ) : null}
+
       {showDesc ? (
-        <div className="space-y-1">
-          {def.whenStartedLabel ? (
-            <p className="text-[10px] font-medium text-slate-500">
-              {def.whenStartedLabel}{' '}
-              <span className="font-normal text-slate-400">(Optional)</span>
-            </p>
+        <div className="space-y-1.5">
+          {def.descriptionHelper ? (
+            <p className="text-[11px] leading-snug text-slate-600">{def.descriptionHelper}</p>
           ) : null}
-          <label htmlFor={`desc-${def.id}`} className="sr-only">
-            {def.description.placeholder}
-          </label>
-          <textarea
-            id={`desc-${def.id}`}
-            rows={3}
-            placeholder={def.description.placeholder}
-            value={value.description}
-            onChange={(e) => patch({ description: e.target.value })}
-            className={cn(
-              supportTextarea,
-              'min-h-[4.5rem] py-3 text-sm placeholder:text-slate-400',
-            )}
-          />
+          <div className={textareaShell}>
+            <label htmlFor={`desc-${def.id}`} className="sr-only">
+              {def.description.placeholder}
+            </label>
+            <textarea
+              id={`desc-${def.id}`}
+              rows={4}
+              placeholder={def.description.placeholder}
+              value={value.description}
+              onChange={(e) => patch({ description: e.target.value })}
+              className={cn(
+                supportTextarea,
+                'min-h-[5.5rem] w-full border-0 bg-transparent p-0 text-[13px] leading-snug text-slate-900 shadow-none ring-0 focus:ring-0 placeholder:text-slate-400',
+              )}
+            />
+          </div>
         </div>
       ) : null}
 
@@ -152,20 +174,30 @@ function ExpandedReasonBody({
             <button
               type="button"
               onClick={() => patch({ uploadSectionOpen: true })}
-              className="text-left text-[11px] font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 hover:text-slate-900"
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-dashed border-support-navy/35 bg-white px-3 text-[12px] font-semibold text-support-navy hover:bg-slate-50"
             >
-              {up.linkText ?? 'Add photos'}
+              {up.linkText ?? '+ Add file'}
             </button>
           ) : (
-            progressive(up.primaryCta ?? 'Upload photo', up.helper, false)
+            progressive(
+              up.primaryCta ?? '+ Add file',
+              up.helper,
+              up.progressiveKind === 'file' ? 'file' : 'photo',
+            )
           )}
         </div>
       ) : (
-        progressive(up.primaryCta ?? 'Upload photo', up.helper, def.id === 'hardware_io')
+        progressive(
+          up.primaryCta ?? '+ Add photo',
+          up.helper,
+          up.progressiveKind === 'file' ? 'file' : 'photo',
+        )
       )}
 
       {def.footerDisclaimer ? (
-        <p className="text-[10px] leading-snug text-slate-500">{def.footerDisclaimer}</p>
+        <div className={disclaimerBox}>
+          <p className="text-[10px] leading-snug text-slate-600">{def.footerDisclaimer}</p>
+        </div>
       ) : null}
     </div>
   );
@@ -208,49 +240,39 @@ export function ReasonFields({
   }
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       <fieldset className="min-w-0 border-0 p-0">
         <legend className="sr-only">Issue for this item</legend>
-        <div className="space-y-0 divide-y divide-slate-200">
+        <div className="divide-y divide-slate-200">
           {REPLACEMENT_REASONS.map((r) => {
             const selected = safeValue.reasonId === r.id;
+            const showExpanded = selected && (!r.carePlusOnly || carePlusVerified);
             return (
-              <div key={r.id} className="py-2 first:pt-0">
+              <div key={r.id} className="py-2.5 first:pt-1">
                 <label
                   className={cn(
-                    'flex cursor-pointer items-start gap-2 rounded-sm p-1.5 transition-colors',
-                    selected ? 'bg-slate-50 ring-1 ring-slate-200' : 'hover:bg-slate-50/80',
+                    'flex cursor-pointer items-start gap-2.5 rounded-lg px-1 py-0.5 transition-colors',
+                    selected ? 'bg-support-tint/40 ring-1 ring-support-navy/12' : 'hover:bg-slate-50/60',
                   )}
                 >
                   <input
                     type="radio"
                     name={`issue-${orderLineId}`}
-                    className="mt-1 h-3.5 w-3.5 shrink-0 border-slate-300 text-blue-600"
+                    className="mt-0.5 h-4 w-4 shrink-0 border-slate-300 text-support-navy"
                     checked={selected}
                     onChange={() => selectReason(r.id)}
                   />
                   <span className="min-w-0 flex-1">
-                    <span className="text-xs font-medium leading-snug text-slate-900">{r.label}</span>
+                    <span className="text-[13px] font-semibold leading-snug text-slate-900">{r.label}</span>
                     {r.subtitle ? (
-                      <span className="mt-0.5 block text-[10px] leading-snug text-slate-500">{r.subtitle}</span>
+                      <span className="mt-0.5 block text-[11px] leading-snug text-slate-500">{r.subtitle}</span>
                     ) : null}
-                    {r.carePlusOnly ? (
-                      <span className="mt-1 inline-flex sm:hidden">
-                        <span className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium text-slate-600 ring-1 ring-slate-200/90">
-                          Care+ Required
-                        </span>
-                      </span>
-                    ) : null}
-                    {r.carePlusOnly ? (
-                      <span className="mt-1 hidden sm:inline-flex">
-                        <span className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 ring-1 ring-slate-200/90">
-                          TickTalk Care+ Required
-                        </span>
-                      </span>
-                    ) : null}
+                    {r.shortHint ? <p className="mt-1 text-[10px] leading-snug text-slate-500">{r.shortHint}</p> : null}
                   </span>
                 </label>
-                {selected ? <ExpandedReasonBody def={r} value={safeValue} onChange={onChange} /> : null}
+                {showExpanded ? (
+                  <ExpandedReasonBody def={r} value={safeValue} onChange={onChange} carePlusVerified={r.carePlusOnly ? carePlusVerified : false} />
+                ) : null}
               </div>
             );
           })}

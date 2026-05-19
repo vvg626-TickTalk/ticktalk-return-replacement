@@ -24,8 +24,8 @@ import {
 import { getReplacementReason, type ReplacementReasonId } from '@/features/replacement/replacementReasons';
 import { ReasonFields } from '@/features/replacement/ReasonFields';
 import {
-  ADD_ITEMS_CTA,
-  ADD_ITEMS_MODAL_TITLE,
+  REPLACEMENT_ADD_ANOTHER_CTA,
+  REPLACEMENT_ADD_MODAL_TITLE,
   NO_ADDITIONAL_ELIGIBLE_ITEMS,
   REPLACEMENT_ADD_ITEMS_EMPTY_HELPER,
   REPLACEMENT_ADD_ITEMS_MODAL_DESCRIPTION,
@@ -283,6 +283,8 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
     });
   }, [lines, selections]);
 
+  const addAnotherOnItemsStepDisabled = addItemsDisabled || (selections.length > 0 && !canLeaveItems);
+
   const canLeaveReasons = useMemo(() => {
     const ids = selections.map((s) => s.orderLineId);
     return allSelectionsHaveCompleteReasons(ids, reasonByLineId, carePlusVerified);
@@ -431,7 +433,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
       <PageHeader
         eyebrow="Replace"
         title="Request replacement"
-        description="Choose the issue for each selected item. Add another product after the current issue is complete."
+        description="Pick one reason per product. Add Another Item and Next unlock when the current item is valid."
         actions={
           <Button variant="secondary" onClick={() => navigate(`/service/order/${order.id}`)}>
             Exit
@@ -880,16 +882,31 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
           >
             Back
           </Button>
-          <AddItemsToolbarSlot disabled={addItemsDisabled}>
+          <AddItemsToolbarSlot
+            disabled={addAnotherOnItemsStepDisabled}
+            disabledHint={
+              addItemsDisabled
+                ? undefined
+                : selections.length > 0 && !canLeaveItems
+                  ? 'Finish the watch IMEI before adding another item.'
+                  : ''
+            }
+          >
             <Button
               type="button"
               variant="secondary"
               className="w-full min-h-12 sm:w-auto"
-              disabled={addItemsDisabled}
-              title={addItemsDisabled ? NO_ADDITIONAL_ELIGIBLE_ITEMS : undefined}
+              disabled={addAnotherOnItemsStepDisabled}
+              title={
+                addItemsDisabled
+                  ? NO_ADDITIONAL_ELIGIBLE_ITEMS
+                  : selections.length > 0 && !canLeaveItems
+                    ? 'Enter a valid IMEI for the current item first'
+                    : undefined
+              }
               onClick={startAdd}
             >
-              {ADD_ITEMS_CTA}
+              {REPLACEMENT_ADD_ANOTHER_CTA}
             </Button>
           </AddItemsToolbarSlot>
           <Button
@@ -898,7 +915,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
             disabled={!canLeaveItems}
             onClick={() => setStep('reasons')}
           >
-            Continue
+            Next
           </Button>
         </WizardStickyActions>
       ) : null}
@@ -919,7 +936,16 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
           >
             Back
           </Button>
-          <AddItemsToolbarSlot disabled={addItemsDisabled || !canLeaveReasons}>
+          <AddItemsToolbarSlot
+            disabled={addItemsDisabled || !canLeaveReasons}
+            disabledHint={
+              !canLeaveReasons
+                ? 'Complete this item’s issue before adding another.'
+                : addItemsDisabled
+                  ? undefined
+                  : ''
+            }
+          >
             <Button
               type="button"
               variant="secondary"
@@ -929,12 +955,12 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
                 addItemsDisabled
                   ? NO_ADDITIONAL_ELIGIBLE_ITEMS
                   : !canLeaveReasons
-                    ? 'Complete the issue for the current item first'
+                    ? 'Complete this item’s issue first'
                     : undefined
               }
               onClick={startAdd}
             >
-              {ADD_ITEMS_CTA}
+              {REPLACEMENT_ADD_ANOTHER_CTA}
             </Button>
           </AddItemsToolbarSlot>
           <Button
@@ -959,7 +985,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
             disabled={!canLeaveContact}
             onClick={() => setStep('preview')}
           >
-            Continue
+            Next
           </Button>
         </WizardStickyActions>
       ) : null}
@@ -1019,12 +1045,12 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
           setAddOpen(false);
           setAddDraft(null);
         }}
-        title={ADD_ITEMS_MODAL_TITLE}
+        title={REPLACEMENT_ADD_MODAL_TITLE}
         description={REPLACEMENT_ADD_ITEMS_MODAL_DESCRIPTION}
         primaryAction={
           addDraft
             ? {
-                label: ADD_ITEMS_CTA,
+                label: REPLACEMENT_ADD_ANOTHER_CTA,
                 onClick: confirmAdd,
                 disabled: !canConfirmAdd,
               }
@@ -1138,8 +1164,8 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
       <Modal
         open={!!carePlus && carePlus.phase === 'gate'}
         onClose={() => setCarePlus(null)}
-        title="Care+ required"
-        description="This issue type is covered for TickTalk Care+ members only."
+        title="TickTalk Care+ Required"
+        description="This issue needs an active TickTalk Care+ plan (TT5 in this demo)."
         secondaryAction={{
           label: 'Cancel',
           onClick: () => setCarePlus(null),
@@ -1153,7 +1179,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
       <Modal
         open={!!carePlus && carePlus.phase === 'verify'}
         onClose={() => setCarePlus(null)}
-        title="Confirm TickTalk Care+"
+        title="Verify TickTalk Care+"
         description={undefined}
       >
         <CarePlusVerifyForm

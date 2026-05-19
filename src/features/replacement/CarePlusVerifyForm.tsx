@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/Button';
-import { Card } from '@/components/Card';
-import { FormField } from '@/components/FormField';
 import { fieldControl, fieldControlMono } from '@/ui/formControls';
+import { cn } from '@/utils/cn';
 
 export type CarePlusForcedOutcome =
   | 'auto'
@@ -36,15 +35,20 @@ function outcomeMessage(outcome: Exclude<CarePlusForcedOutcome, 'auto'>): string
   }
 }
 
+const shell = 'rounded-xl border border-slate-200/90 bg-slate-50/50 px-3 py-2.5';
+
+function isPhoneFilled(raw: string): boolean {
+  const d = raw.replace(/\D/g, '');
+  return d.length === 10 || (d.length === 11 && d.startsWith('1'));
+}
+
 /**
- * Mock-only verification UI (OTP + countdown). Magic codes (demo):
- * - 120001 expired · 120002 incorrect · 120003 mismatch · 120004 limit · 120005 unknown
- * Any other 6-digit code succeeds when “QA · force an error” is set to Auto.
+ * Mock-only verification (TT5 / Care+). QA panel only in dev.
  */
 export function CarePlusVerifyForm({
   onVerified,
   onCancel,
-  defaultDevicePhone = '+1',
+  defaultDevicePhone = '+1 ',
   defaultParentAccount = '',
 }: CarePlusVerifyFormProps) {
   const [devicePhone, setDevicePhone] = useState(defaultDevicePhone);
@@ -58,8 +62,7 @@ export function CarePlusVerifyForm({
 
   const canSend = useMemo(() => {
     const acct = parentAccount.trim();
-    const phone = devicePhone.replace(/\D/g, '');
-    return acct.length >= 3 && phone.length >= 10;
+    return acct.length >= 3 && isPhoneFilled(devicePhone);
   }, [devicePhone, parentAccount]);
 
   useEffect(() => {
@@ -82,7 +85,7 @@ export function CarePlusVerifyForm({
     setToast('Verification code sent. Please use it within 5 minutes.');
   };
 
-  const submit = () => {
+  const verify = () => {
     setError(null);
     const trimmed = code.trim();
     if (trimmed.length < 6) return;
@@ -124,113 +127,129 @@ export function CarePlusVerifyForm({
   const mmss = `${String(Math.floor(secondsLeft / 60)).padStart(2, '0')}:${String(secondsLeft % 60).padStart(2, '0')}`;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {toast ? (
-        <div className="rounded-2xl bg-brand-accentSoft px-4 py-3 text-sm font-semibold text-teal-950 ring-1 ring-teal-200">
+        <div className="rounded-xl bg-support-tint px-3 py-2 text-[13px] font-semibold text-support-navy ring-1 ring-support-navy/12">
           {toast}
         </div>
       ) : null}
 
-      <Card className="border-0 bg-teal-50/40 shadow-none ring-1 ring-teal-100/80">
-        <p className="text-sm font-semibold text-brand-ink">Verify your plan</p>
-        <p className="mt-1.5 text-sm leading-snug text-slate-600">We’ll text a code to the number on file for this watch.</p>
-      </Card>
+      <div className={shell}>
+        <p className="text-[12px] font-semibold text-slate-900">TickTalk Care+</p>
+        <p className="mt-1 text-[11px] leading-snug text-slate-600">TickTalk 5 only. We text a code to the watch number on file.</p>
+      </div>
 
-      <FormField
-        id="care-device-phone"
-        label="Watch phone number"
-        hint="Includes +1 by default. TickTalk 5 watches only in this demo."
-      >
+      <div className={shell}>
+        <label htmlFor="care-device-phone" className="text-[11px] font-semibold text-slate-800">
+          Watch phone number
+        </label>
+        <p className="mt-0.5 text-[10px] leading-snug text-slate-500">Default +1. You can type with or without country code.</p>
         <input
           id="care-device-phone"
-          className={fieldControl}
+          className={cn(fieldControl, 'mt-2 border-slate-200 bg-white')}
           value={devicePhone}
           onChange={(e) => setDevicePhone(e.target.value)}
           inputMode="tel"
           autoComplete="tel"
         />
-      </FormField>
+      </div>
 
-      <FormField
-        id="care-parent"
-        label="TickTalk Wireless account"
-        hint="Email or phone on your TickTalk Wireless account. TickTalk 5 only in this demo."
-      >
+      <div className={shell}>
+        <label htmlFor="care-parent" className="text-[11px] font-semibold text-slate-800">
+          TickTalk Wireless account
+        </label>
+        <p className="mt-0.5 text-[10px] leading-snug text-slate-500">Email or phone on your wireless account.</p>
         <input
           id="care-parent"
-          className={fieldControl}
+          className={cn(fieldControl, 'mt-2 border-slate-200 bg-white')}
           value={parentAccount}
           onChange={(e) => setParentAccount(e.target.value)}
           autoComplete="email"
         />
-      </FormField>
-
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <Button type="button" variant="secondary" className="min-h-12 w-full shrink-0 sm:w-auto" disabled={!canSend || secondsLeft > 0} onClick={send}>
-          {secondsLeft > 0 ? `Resend in ${mmss}` : 'Send Verification Code'}
-        </Button>
-        <div className="text-xs leading-snug text-slate-600">
-          {codeSentOnce ? (
-            <button type="button" className="font-semibold text-support-navy underline" onClick={send} disabled={!canSend || secondsLeft > 0}>
-              Did not receive code?
-            </button>
-          ) : (
-            <span>We&apos;ll text a code after you tap Send Verification Code.</span>
-          )}
-        </div>
       </div>
 
-      <FormField
-        id="care-code"
-        label="Verification code"
-        hint="Enter the 6-digit code (demo: any six digits except 120001–120005 when QA is Auto)."
-        error={error ?? undefined}
-      >
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <Button
+          type="button"
+          variant="secondary"
+          className="min-h-11 w-full shrink-0 text-[13px] sm:w-auto"
+          disabled={!canSend || secondsLeft > 0}
+          onClick={send}
+        >
+          {secondsLeft > 0 ? `Resend in ${mmss}` : 'Send Verification Code'}
+        </Button>
+        <p className="text-[11px] leading-snug text-slate-600">
+          {codeSentOnce ? (
+            <button
+              type="button"
+              className="font-semibold text-support-navy underline decoration-support-navy/30 disabled:opacity-40"
+              onClick={send}
+              disabled={!canSend || secondsLeft > 0}
+            >
+              Didn’t receive a code?
+            </button>
+          ) : (
+            <span>Tap Send when phone and account look right.</span>
+          )}
+        </p>
+      </div>
+
+      <div className={shell}>
+        <label htmlFor="care-code" className="text-[11px] font-semibold text-slate-800">
+          Verification code
+        </label>
         <input
           id="care-code"
-          className={fieldControlMono}
+          className={cn(fieldControlMono, 'mt-2 border-slate-200 bg-white')}
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/[^\d]/g, '').slice(0, 6))}
           inputMode="numeric"
           autoComplete="one-time-code"
           placeholder="6-digit code"
+          aria-invalid={Boolean(error)}
         />
-      </FormField>
+        {error ? <p className="mt-1.5 text-[11px] font-medium text-red-700">{error}</p> : null}
+        {import.meta.env.DEV ? (
+          <p className="mt-2 text-[10px] leading-snug text-slate-500">Demo: any 6 digits except 120001–120005 (unless QA below is set).</p>
+        ) : null}
+      </div>
 
       {import.meta.env.DEV ? (
-        <details className="rounded-2xl bg-slate-50/80 ring-1 ring-slate-200/80">
-          <summary className="min-h-12 cursor-pointer list-none px-4 py-3 text-sm font-semibold text-slate-700 marker:hidden [&::-webkit-details-marker]:hidden">
-            QA · force an error (demo)
+        <details className="rounded-xl border border-slate-200/80 bg-white px-2 py-1">
+          <summary className="cursor-pointer list-none px-1 py-2 text-[11px] font-semibold text-slate-600 marker:hidden [&::-webkit-details-marker]:hidden">
+            QA · force error (dev)
           </summary>
-          <div className="border-t border-slate-200/80 px-4 pb-4 pt-3">
+          <div className="border-t border-slate-100 px-1 pb-2 pt-2">
             <label htmlFor="care-forced" className="sr-only">
-              Demo forced outcome
+              Demo outcome
             </label>
             <select
               id="care-forced"
-              className={`${fieldControl} appearance-auto`}
+              className={`${fieldControl} appearance-auto text-sm`}
               value={forcedOutcome}
               onChange={(e) => setForcedOutcome(e.target.value as CarePlusForcedOutcome)}
             >
-              <option value="auto">Auto — use code rules</option>
+              <option value="auto">Auto</option>
               <option value="expired">Expired</option>
-              <option value="incorrect">Incorrect code</option>
-              <option value="mismatch">Account/phone mismatch</option>
+              <option value="incorrect">Invalid code</option>
+              <option value="mismatch">Wrong phone/account</option>
               <option value="limit">Daily limit</option>
               <option value="unknown">Unknown error</option>
             </select>
-            <p className="mt-2 text-xs leading-snug text-slate-500">
-              Codes 120001–120005 also map to errors when outcome is Auto.
-            </p>
           </div>
         </details>
       ) : null}
 
-      <div className="flex flex-col-reverse gap-2 border-t border-slate-200/90 pt-4 sm:flex-row sm:justify-end">
-        <Button type="button" variant="secondary" className="min-h-12 w-full sm:w-auto" onClick={onCancel}>
-          Back
+      <div className="flex flex-col-reverse gap-2 border-t border-slate-200/80 pt-3 sm:flex-row sm:justify-end">
+        <Button type="button" variant="secondary" className="min-h-11 w-full text-[13px] sm:w-auto" onClick={onCancel}>
+          Cancel
         </Button>
-        <Button type="button" className="min-h-12 w-full sm:w-auto" disabled={code.trim().length < 6} onClick={submit}>
+        <Button
+          type="button"
+          className="min-h-11 w-full text-[13px] sm:w-auto"
+          disabled={code.trim().length < 6}
+          onClick={verify}
+        >
           Verify
         </Button>
       </div>
