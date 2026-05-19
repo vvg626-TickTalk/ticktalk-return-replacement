@@ -5,6 +5,7 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { FormField } from '@/components/FormField';
 import { Modal } from '@/components/Modal';
+import { ServiceMessageModal } from '@/components/ServiceMessageModal';
 import { PageHeader } from '@/components/PageHeader';
 import { ProductCard } from '@/components/ProductCard';
 import { Stepper } from '@/components/Stepper';
@@ -48,6 +49,7 @@ import {
   clearPostReplacementPrefill,
   savePostReplacementPrefill,
 } from '@/features/serviceOrder/postReplacementPrefill';
+import { carePlusNotAvailableMessage, evaluateCarePlusAfterVerify } from '@/features/serviceOrder/carePlusReplacementGate';
 import type { ServiceFlowLocationState } from '@/features/serviceOrder/serviceFlowLocation';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
 import type { RegisteredServiceRma } from '@/features/serviceOrder/types';
@@ -182,6 +184,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
   const [selectedStockOptionId, setSelectedStockOptionId] = useState<string | null>(null);
 
   const [policyDetailsOpen, setPolicyDetailsOpen] = useState(false);
+  const [carePlusDeniedOpen, setCarePlusDeniedOpen] = useState(false);
 
   useEffect(() => {
     if (prefillAppliedRef.current) return;
@@ -1188,6 +1191,16 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
           onVerified={() => {
             const c = carePlusRef.current;
             if (!c || c.phase !== 'verify') return;
+            const post = evaluateCarePlusAfterVerify({
+              customerId: order.customerId,
+              orderLineId: c.lineId,
+              reasonId: c.reasonId,
+            });
+            if (!post.ok) {
+              setCarePlus(null);
+              setCarePlusDeniedOpen(true);
+              return;
+            }
             try {
               sessionStorage.setItem(`tt-careplus:${order.id}`, '1');
             } catch {
@@ -1202,6 +1215,14 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
           }}
         />
       </Modal>
+
+      <ServiceMessageModal
+        open={carePlusDeniedOpen}
+        title={carePlusNotAvailableMessage().title}
+        message={carePlusNotAvailableMessage().body}
+        onClose={() => setCarePlusDeniedOpen(false)}
+        primaryAction={{ label: 'OK', onClick: () => setCarePlusDeniedOpen(false) }}
+      />
     </div>
   );
 }

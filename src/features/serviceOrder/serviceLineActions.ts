@@ -2,7 +2,7 @@ import { isLineReplaceEligible, lineRequiresImei } from '@/features/replacement/
 import { RETURN_WINDOW_DAYS } from '@/features/return/returnConstants';
 import { getReturnEligibility } from '@/features/return/returnEligibility';
 import { customerHasActiveCarePlus } from '@/features/tradeIn/tradeInCarePlus';
-import { getWarrantyForLine } from '@/mock-data';
+import { getWarrantyForLine, hasOpenReplacementOnLine, hasOpenReturnOnLine } from '@/mock-data';
 import type { Order, OrderLine, Product } from '@/types/models';
 
 export function orderIsFullyUnshipped(lines: OrderLine[]): boolean {
@@ -93,6 +93,26 @@ const tradeInNotEligibleYet: ServiceBlockedModal = {
   body: 'Trade-in is available once the 1-year warranty has ended or TickTalk Care+ is no longer active on your account.',
 };
 
+const duplicateOpenReturn: ServiceBlockedModal = {
+  title: 'Return Not Available',
+  body: 'A return request is already open for this product.',
+};
+
+const duplicateOpenReplace: ServiceBlockedModal = {
+  title: 'Replacement Not Available',
+  body: 'A replacement request is already open for this product.',
+};
+
+const returnBlockedOpenReplacement: ServiceBlockedModal = {
+  title: 'Return Not Available',
+  body: 'Return is not available while a replacement request is open.',
+};
+
+const replaceBlockedOpenReturn: ServiceBlockedModal = {
+  title: 'Replacement Not Available',
+  body: 'Replacement is not available while a return request is open.',
+};
+
 function isWithinReturnWindowLine(line: OrderLine, order: Order, referenceDate: Date): boolean {
   const start = new Date(line.deliveredAt ?? order.createdAt);
   const end = new Date(start);
@@ -112,6 +132,12 @@ export function getLineReturnAction(
   }
   if (orderUnshipped || line.status === 'unshipped') {
     return { enabled: false, modal: unshippedBlocked, showAsDisabled: true };
+  }
+  if (hasOpenReturnOnLine(order.id, line.id)) {
+    return { enabled: false, modal: duplicateOpenReturn, showAsDisabled: true };
+  }
+  if (hasOpenReplacementOnLine(order.id, line.id)) {
+    return { enabled: false, modal: returnBlockedOpenReplacement, showAsDisabled: true };
   }
   if (line.isGift) {
     return { enabled: false, modal: giftReturnBlocked, showAsDisabled: true };
@@ -149,6 +175,12 @@ export function getLineReplaceAction(
   }
   if (orderUnshipped || line.status === 'unshipped') {
     return { enabled: false, modal: unshippedBlocked, showAsDisabled: true };
+  }
+  if (hasOpenReplacementOnLine(order.id, line.id)) {
+    return { enabled: false, modal: duplicateOpenReplace, showAsDisabled: true };
+  }
+  if (hasOpenReturnOnLine(order.id, line.id)) {
+    return { enabled: false, modal: replaceBlockedOpenReturn, showAsDisabled: true };
   }
   if (lineIsInTransit(line)) {
     return { enabled: false, modal: inTransitReplace, showAsDisabled: true };

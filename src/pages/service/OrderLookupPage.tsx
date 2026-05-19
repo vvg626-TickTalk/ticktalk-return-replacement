@@ -23,6 +23,7 @@ import {
   supportPageTitle,
 } from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
+import { ORDER_LOOKUP_DEMO_HINT } from '@/features/orderLookup/orderLookupDemoHints';
 
 function cellInputMode(kind: 'digits' | 'letters' | 'alphanumeric'): 'numeric' | 'text' {
   return kind === 'digits' ? 'numeric' : 'text';
@@ -257,6 +258,9 @@ export function OrderLookupPage() {
                 value={postal}
                 onChange={(e) => setPostal(e.target.value)}
               />
+              <p className="mt-2 whitespace-pre-line text-center text-[10px] leading-relaxed text-slate-500">
+                {ORDER_LOOKUP_DEMO_HINT}
+              </p>
             </div>
 
             {error ? (

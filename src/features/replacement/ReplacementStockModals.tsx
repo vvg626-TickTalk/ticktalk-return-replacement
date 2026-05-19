@@ -114,10 +114,10 @@ export function ReplacementRmaQueuedModal({
 }) {
   const copy =
     variant === 'wait_restock'
-      ? 'Your request has been received. We’ll process it once the item is back in stock.'
+      ? 'We received your request and will process it when the item is back in stock.'
       : variant === 'replace'
         ? 'Your replacement request has been received. We’ll process it as soon as possible.'
-        : 'Sorry, the requested replacement is currently unavailable. Our support team will contact you as soon as possible.';
+        : 'We received your request. We will contact you as soon as possible.';
 
   const handleDismiss = onDismiss ?? onContinue;
 

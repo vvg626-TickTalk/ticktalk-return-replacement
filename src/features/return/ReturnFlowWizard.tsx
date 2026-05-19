@@ -829,6 +829,12 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
               confirm the final amount after your package is inspected. If the refund would be zero or negative, support may
               reach out with options.
             </p>
+            <p className="mt-2 text-[11px] font-medium text-slate-800">Final refund is subject to inspection.</p>
+            {order.shippingRegion === 'international' ? (
+              <p className="mt-2 text-[11px] leading-snug text-amber-950/90">
+                International return shipping may not be covered. Duties and carrier rules may apply—see policy below.
+              </p>
+            ) : null}
           </div>
 
           {bundleRequiresGiftReturn ? (

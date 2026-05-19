@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/Button';
 import { FormField } from '@/components/FormField';
 import { ServiceToast } from '@/components/ServiceToast';
+import { appendDemoContactMessage } from '@/features/serviceOrder/demoServiceLog';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
 import { SERVICE_ACCOUNT_FOOTNOTE } from '@/features/serviceOrder/serviceAuthCopy';
 import { supportModalTitle } from '@/ui/supportTheme';
@@ -18,7 +19,7 @@ export function ServiceContactPage() {
     const s = searchParams.get('subject')?.trim();
     if (s) return s;
     const rma = searchParams.get('rma')?.trim();
-    return rma ? `RMA ${rma}` : '';
+    return rma ? `RMA #${rma}` : '';
   }, [searchParams]);
 
   const [subject, setSubject] = useState(defaultSubject);
@@ -36,6 +37,13 @@ export function ServiceContactPage() {
   const showEmailField = !accountEmail;
 
   const onSend = () => {
+    const rmaParam = searchParams.get('rma')?.trim() ?? '';
+    const fromSubject = subject.replace(/^RMA\s*#?\s*/i, '').trim();
+    appendDemoContactMessage({
+      rmaCode: rmaParam || fromSubject || '—',
+      subject: subject.trim(),
+      body: message.trim(),
+    });
     setToastOpen(true);
   };
 

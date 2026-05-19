@@ -20,6 +20,12 @@ export type TradeInDemoState = {
   careStatusLabel: string;
   newProductId: string | null;
   appliedToCart: boolean;
+  /** Order detail trade-in seed (attach pending after signup) */
+  sourceOrderId?: string | null;
+  /** Purchase quantity when trade-in was applied (demo cap) */
+  purchaseQty?: number;
+  /** Devices covered by trade-in offers (demo); usually 1 */
+  tradeInSlotCount?: number;
 };
 
 export function defaultTradeInDemoState(partial?: Partial<TradeInDemoState>): TradeInDemoState {
@@ -34,6 +40,9 @@ export function defaultTradeInDemoState(partial?: Partial<TradeInDemoState>): Tr
     careStatusLabel: 'Not enrolled',
     newProductId: null,
     appliedToCart: false,
+    sourceOrderId: null,
+    purchaseQty: 1,
+    tradeInSlotCount: 0,
     ...partial,
   };
 }
@@ -85,6 +94,7 @@ export function seedTradeInFromOrderLine(params: {
   colorLabel?: string;
   imei: string;
   careStatusLabel: string;
+  orderId?: string;
 }) {
   const sub = [params.colorLabel ?? '', "AT&T's Network"].filter(Boolean).join(' / ');
   saveTradeInDemo(
@@ -98,6 +108,9 @@ export function seedTradeInFromOrderLine(params: {
       promoValidUntilIso: TRADE_IN_PROMO_VALID_UNTIL_ISO,
       newProductId: null,
       appliedToCart: false,
+      sourceOrderId: params.orderId ?? null,
+      purchaseQty: 1,
+      tradeInSlotCount: 0,
     }),
   );
 }

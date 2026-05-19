@@ -9,7 +9,14 @@ function formatCredit(cents: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
 }
 
-export function TradeInProductModule({ productId }: { productId: string }) {
+export function TradeInProductModule({
+  productId,
+  purchaseQty = 1,
+}: {
+  productId: string;
+  /** Caps how many parallel trade-in slots the customer can take (demo). */
+  purchaseQty?: number;
+}) {
   const [, setRefresh] = useState(0);
   const demo = loadTradeInDemo();
   const applied = Boolean(demo?.appliedToCart && demo.newProductId === productId);
@@ -19,19 +26,26 @@ export function TradeInProductModule({ productId }: { productId: string }) {
   const refresh = () => setRefresh((n) => n + 1);
 
   const onJoin = () => {
-    patchTradeInDemo({ appliedToCart: true, newProductId: productId });
+    const cap = Math.max(1, purchaseQty);
+    const nextSlots = Math.min(demo?.tradeInSlotCount || 1, cap);
+    patchTradeInDemo({
+      appliedToCart: true,
+      newProductId: productId,
+      tradeInSlotCount: Math.max(1, nextSlots),
+      purchaseQty: cap,
+    });
     setShowDeclined(false);
     refresh();
   };
 
   const onNoThanks = () => {
-    patchTradeInDemo({ appliedToCart: false, newProductId: productId });
+    patchTradeInDemo({ appliedToCart: false, newProductId: productId, tradeInSlotCount: 0 });
     setShowDeclined(true);
     refresh();
   };
 
   const onRemove = () => {
-    patchTradeInDemo({ appliedToCart: false });
+    patchTradeInDemo({ appliedToCart: false, tradeInSlotCount: 0 });
     setConfirmOpen(false);
     setShowDeclined(false);
     refresh();
@@ -71,6 +85,9 @@ export function TradeInProductModule({ productId }: { productId: string }) {
               <p className="text-xs font-semibold uppercase tracking-wide text-support-navy/90">Trade-in included</p>
               <p className="mt-1 text-sm font-medium text-slate-900">{demo.oldDeviceName}</p>
               <p className="text-sm font-semibold text-support-navy">Trade-in credit {formatCredit(demo.creditCents)}</p>
+              {(demo.tradeInSlotCount ?? 1) > 1 ? (
+                <p className="mt-1 text-xs text-slate-600">Slots in use: {demo.tradeInSlotCount} / {purchaseQty} (demo)</p>
+              ) : null}
             </div>
             <button
               type="button"
@@ -87,6 +104,19 @@ export function TradeInProductModule({ productId }: { productId: string }) {
         </div>
       ) : (
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          {purchaseQty >= 2 && (demo.tradeInSlotCount ?? 1) < purchaseQty ? (
+            <button
+              type="button"
+              className={supportButtonSecondary}
+              onClick={() => {
+                const next = Math.min(purchaseQty, (demo.tradeInSlotCount ?? 1) + 1);
+                patchTradeInDemo({ tradeInSlotCount: next });
+                refresh();
+              }}
+            >
+              Add trade-in slot ({(demo.tradeInSlotCount ?? 1) + 1}/{purchaseQty} demo)
+            </button>
+          ) : null}
           <button type="button" className={supportButtonSecondary} onClick={onNoThanks}>
             No, thanks
           </button>

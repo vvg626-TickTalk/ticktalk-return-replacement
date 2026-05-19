@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/Button';
+import { Modal } from '@/components/Modal';
 import { TradeInProductModule } from '@/components/tradeIn/TradeInProductModule';
 import { getProductById } from '@/mock-data';
-import { patchTradeInDemo } from '@/features/tradeIn/tradeInDemoStorage';
-import { supportBodySmall, supportModalTitle } from '@/ui/supportTheme';
+import { loadTradeInDemo, patchTradeInDemo } from '@/features/tradeIn/tradeInDemoStorage';
+import { supportBodySmall, supportButtonSecondary, supportModalTitle } from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
 const DEMO_PRICE: Record<string, number> = {
@@ -16,6 +17,21 @@ export function TradeInProductPage() {
   const { productId = '' } = useParams();
   const product = getProductById(productId);
   const [qty, setQty] = useState(1);
+  const [tradeInCapOpen, setTradeInCapOpen] = useState(false);
+  const [pendingQty, setPendingQty] = useState(1);
+
+  const applyQty = (next: number) => {
+    const clamped = Math.max(1, Math.min(5, next));
+    const demo = loadTradeInDemo();
+    const slots = demo?.tradeInSlotCount ?? 0;
+    if (demo?.appliedToCart && slots > clamped) {
+      setPendingQty(clamped);
+      setTradeInCapOpen(true);
+      return;
+    }
+    setQty(clamped);
+    patchTradeInDemo({ purchaseQty: clamped });
+  };
 
   const priceCents = product ? (DEMO_PRICE[product.id] ?? 199_99) : 0;
   const priceLabel = useMemo(
@@ -56,14 +72,14 @@ export function TradeInProductPage() {
             min={1}
             max={5}
             value={qty}
-            onChange={(e) => setQty(Math.max(1, Math.min(5, Number(e.target.value) || 1)))}
+            onChange={(e) => applyQty(Number(e.target.value) || 1)}
             className="h-12 w-20 rounded-xl border border-slate-200 px-3 text-center text-sm font-semibold"
           />
           <Button
             type="button"
             className="min-h-12 flex-1"
             onClick={() => {
-              patchTradeInDemo({ newProductId: product.id });
+              patchTradeInDemo({ newProductId: product.id, purchaseQty: qty });
             }}
           >
             Add to cart (demo)
@@ -71,7 +87,40 @@ export function TradeInProductPage() {
         </div>
       </div>
 
-      <TradeInProductModule productId={product.id} />
+      <TradeInProductModule productId={product.id} purchaseQty={qty} />
+
+      <Modal
+        open={tradeInCapOpen}
+        onClose={() => setTradeInCapOpen(false)}
+        title="Trade-in quantity"
+        description="Purchase quantity is below the number of trade-in devices you added."
+        footer={
+          <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button type="button" className={supportButtonSecondary} onClick={() => setTradeInCapOpen(false)}>
+              Keep current quantity
+            </button>
+            <Button
+              type="button"
+              onClick={() => {
+                patchTradeInDemo({
+                  appliedToCart: false,
+                  tradeInSlotCount: 0,
+                  newProductId: product.id,
+                });
+                setQty(pendingQty);
+                patchTradeInDemo({ purchaseQty: pendingQty });
+                setTradeInCapOpen(false);
+              }}
+            >
+              Remove trade-in(s)
+            </Button>
+          </div>
+        }
+      >
+        <p className={supportBodySmall}>
+          Choose which trade-in devices to remove, or keep your original purchase quantity (demo).
+        </p>
+      </Modal>
 
       <p className="text-center text-xs text-slate-500">
         <Link to="/trade-in/preview" className="font-medium text-support-navy underline">

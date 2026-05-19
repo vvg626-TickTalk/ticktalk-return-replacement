@@ -15,7 +15,7 @@ export const orders: Order[] = [
     id: 'ord-102',
     channel: 'amazon',
     externalOrderRef: '111-2959942-5172257',
-    shippingPostal: '94107',
+    shippingPostal: '12345',
     customerId: 'cust-bernard',
     createdAt: '2026-05-01T09:00:00.000Z',
     shippingRegion: 'domestic',
@@ -69,9 +69,18 @@ export const orders: Order[] = [
     id: 'ord-loy-05',
     channel: 'walmart',
     externalOrderRef: '129103825224007',
-    shippingPostal: '98101',
+    shippingPostal: '75001',
     customerId: 'cust-marian',
     createdAt: '2025-09-08T12:00:00.000Z',
+    shippingRegion: 'domestic',
+  },
+  {
+    id: 'ord-bb-90210',
+    channel: 'bestbuy',
+    externalOrderRef: 'BBY03-807142006365-A',
+    shippingPostal: '90210',
+    customerId: 'cust-bernard',
+    createdAt: '2024-04-10T12:00:00.000Z',
     shippingRegion: 'domestic',
   },
   {
@@ -187,16 +196,20 @@ export const orderLines: OrderLine[] = [
     demoLineTotalCents: 12_99,
     demoReturned: true,
   },
-  /* Bernard — ord-102 new purchase in flight */
+  /* Bernard — ord-102 Amazon: shipped, not delivered (demo lookup 12345) */
   {
     id: 'line-ord-102-a',
     orderId: 'ord-102',
     productId: 'prod-tt-watch-6',
     quantity: 1,
+    imei: '356789012300001',
     isGift: false,
-    status: 'unshipped',
+    status: 'shipped',
+    customerReceived: false,
+    deliveredAt: '2026-05-17T12:00:00.000Z',
     demoLineTotalCents: 229_99,
     demoPurchasedColor: 'Midnight',
+    demoCarrier: 'Amazon',
   },
   /* Ada — ord-103 in transit */
   {
@@ -306,6 +319,31 @@ export const orderLines: OrderLine[] = [
     demoPurchasedColor: 'Lunar Gray',
     demoCarrier: 'eSIM',
   },
+  {
+    id: 'line-loy-05-b',
+    orderId: 'ord-loy-05',
+    productId: 'prod-strap-sport',
+    quantity: 1,
+    isGift: false,
+    status: 'shipped',
+    deliveredAt: '2025-09-15T12:00:00.000Z',
+    demoLineTotalCents: 24_99,
+    demoPurchasedColor: 'Black',
+  },
+  /* Bernard — Best Buy: delivered long ago; return window closed, extended warranty for replacement demo */
+  {
+    id: 'line-bb-90210-a',
+    orderId: 'ord-bb-90210',
+    productId: 'prod-tt-watch-5',
+    quantity: 1,
+    imei: '356789099887766',
+    isGift: false,
+    status: 'shipped',
+    deliveredAt: '2024-12-15T12:00:00.000Z',
+    demoLineTotalCents: 199_99,
+    demoPurchasedColor: 'Lunar Gray',
+    demoCarrier: 'eSIM',
+  },
   /* Bernard recent walmart */
   {
     id: 'line-new-06-a',
@@ -401,4 +439,6 @@ export const imeiRecords: ImeiRecord[] = [
   { id: 'imei-n06', value: '356789066666666', productId: 'prod-tt-watch-6', orderLineId: 'line-new-06-a' },
   { id: 'imei-qa9', value: '356789077777777', productId: 'prod-tt-watch-6', orderLineId: 'line-qa-09-a' },
   { id: 'imei-qa10', value: '356789088888888', productId: 'prod-tt-watch-5', orderLineId: 'line-qa-10-a' },
+  { id: 'imei-102a', value: '356789012300001', productId: 'prod-tt-watch-6', orderLineId: 'line-ord-102-a' },
+  { id: 'imei-bb', value: '356789099887766', productId: 'prod-tt-watch-5', orderLineId: 'line-bb-90210-a' },
 ];

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Modal } from '@/components/Modal';
 import { isPlausibleImei, normalizeImei } from '@/features/replacement/eligibility';
+import { validateWatchImeiForLine } from '@/features/serviceOrder/imeiValidation';
 import { supportButtonPrimary, supportButtonSecondary, supportFieldMono, supportLabel } from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
@@ -11,9 +12,11 @@ export type WatchImeiModalProps = {
   onClose: () => void;
   /** Called with normalized 15-digit IMEI */
   onConfirm: (imei: string) => void;
+  /** When set, IMEI must exist on this order line and pass demo service rules */
+  validation?: { orderId: string; lineId: string };
 };
 
-export function WatchImeiModal({ open, onClose, onConfirm }: WatchImeiModalProps) {
+export function WatchImeiModal({ open, onClose, onConfirm, validation }: WatchImeiModalProps) {
   const [phase, setPhase] = useState<Phase>('enter');
   const [value, setValue] = useState('');
 
@@ -38,6 +41,17 @@ export function WatchImeiModal({ open, onClose, onConfirm }: WatchImeiModalProps
     if (!isPlausibleImei(v)) {
       setPhase('invalid');
       return;
+    }
+    if (validation) {
+      const res = validateWatchImeiForLine({ rawImei: v, orderId: validation.orderId, lineId: validation.lineId });
+      if (res === 'unknown') {
+        setPhase('unknown');
+        return;
+      }
+      if (res === 'invalid') {
+        setPhase('invalid');
+        return;
+      }
     }
     onConfirm(v);
     reset();

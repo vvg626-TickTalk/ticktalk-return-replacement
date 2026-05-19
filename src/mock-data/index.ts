@@ -89,6 +89,21 @@ export function listReplacementChainForLine(orderLineId: string): Rma[] {
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
+/** Open service requests on a single order line (demo). */
+export function listOpenRmasForOrderLine(orderId: string, orderLineId: string): Rma[] {
+  return rmas.filter(
+    (r) => r.orderId === orderId && r.orderLineId === orderLineId && OPEN_RMA_STATUSES.includes(r.status),
+  );
+}
+
+export function hasOpenReturnOnLine(orderId: string, orderLineId: string): boolean {
+  return listOpenRmasForOrderLine(orderId, orderLineId).some((r) => r.kind === 'return');
+}
+
+export function hasOpenReplacementOnLine(orderId: string, orderLineId: string): boolean {
+  return listOpenRmasForOrderLine(orderId, orderLineId).some((r) => r.kind === 'replacement');
+}
+
 export function listOrdersForCustomer(customerId: string) {
   return orders.filter((o) => o.customerId === customerId);
 }

@@ -21,6 +21,15 @@ export const warranties: Warranty[] = [
   { id: 'wty-intl', orderLineId: 'line-intl-07-a', startsOn: '2025-08-20', endsOn: '2026-08-20', tier: 'standard' },
   { id: 'wty-qa9', orderLineId: 'line-qa-09-a', startsOn: '2026-04-10', endsOn: '2027-04-10', tier: 'standard' },
   { id: 'wty-qa10', orderLineId: 'line-qa-10-a', startsOn: '2026-02-20', endsOn: '2027-02-20', tier: 'standard' },
+  { id: 'wty-102a', orderLineId: 'line-ord-102-a', startsOn: '2026-05-17', endsOn: '2027-05-17', tier: 'standard' },
+  { id: 'wty-loy5b', orderLineId: 'line-loy-05-b', startsOn: '2025-09-15', endsOn: '2026-09-15', tier: 'standard' },
+  {
+    id: 'wty-bb-90210',
+    orderLineId: 'line-bb-90210-a',
+    startsOn: '2024-12-15',
+    endsOn: '2027-12-15',
+    tier: 'standard',
+  },
 ];
 
 export const carePlusSubscriptions: CarePlusSubscription[] = [
@@ -64,6 +73,17 @@ export const carePlusSubscriptions: CarePlusSubscription[] = [
     orderLineId: 'line-qa-10-a',
     planNotes: 'Replacement benefit fully used',
   },
+  {
+    id: 'care-qa-partial',
+    customerId: 'cust-qa',
+    accountRef: 'qa.loop@example.com',
+    devicePhone: '+18005559888',
+    status: 'active',
+    expiresOn: '2028-06-01',
+    orderLineId: 'line-qa-09-a',
+    planNotes: 'Water damage benefit already claimed (demo)',
+    exhaustedCarePlusReasonIds: ['water_damage'],
+  },
 ];
 
 export const rmas: Rma[] = [
@@ -73,12 +93,12 @@ export const rmas: Rma[] = [
     orderId: 'ord-101',
     customerId: 'cust-ada',
     kind: 'return',
-    status: 'return_in_review',
+    status: 'refunded',
     createdAt: '2026-05-10T16:10:00.000Z',
-    updatedAt: '2026-05-12T15:22:00.000Z',
+    updatedAt: '2026-05-14T09:00:00.000Z',
     orderLineId: 'line-ord-101-d',
     deviceImei: '356789022222222',
-    summary: 'Return — Purple strap bundle items',
+    summary: 'Return — closed after refund (demo); line still has open replacement below',
   },
   {
     id: 'rma-5002',
@@ -105,11 +125,11 @@ export const rmas: Rma[] = [
     orderLineId: 'line-ord-101-a',
     deviceImei: '356789011111111',
     parentRmaId: 'rma-fam-9f0',
-    summary: 'Second replacement — overheating on prior unit',
+    summary: 'RMA RP100084 follow-on — battery overheating · in review (awaits your reply)',
   },
   {
     id: 'rma-fam-9f0',
-    code: 'TT-9F0',
+    code: 'RP100084',
     orderId: 'ord-101',
     customerId: 'cust-ada',
     kind: 'replacement',
@@ -123,7 +143,7 @@ export const rmas: Rma[] = [
   },
   {
     id: 'rma-fam-8a2',
-    code: 'TT-8A2',
+    code: 'RP100001',
     orderId: 'ord-101',
     customerId: 'cust-ada',
     kind: 'replacement',

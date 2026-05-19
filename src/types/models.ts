@@ -115,6 +115,8 @@ export interface CarePlusSubscription {
   orderLineId?: string;
   /** Demo: entitlements blurb */
   planNotes?: string;
+  /** Demo: Care+ reasons already claimed under this subscription (blocks repeat claims). */
+  exhaustedCarePlusReasonIds?: string[];
 }
 
 export interface Rma {

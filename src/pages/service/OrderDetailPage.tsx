@@ -252,6 +252,7 @@ export function OrderDetailPage() {
                   colorLabel: line.demoPurchasedColor,
                   imei: line.imei ?? '—',
                   careStatusLabel: tradeInCareStatusLine(order.customerId),
+                  orderId: order.id,
                 });
                 navigate('/trade-in/preview');
               }}
@@ -431,6 +432,7 @@ export function OrderDetailPage() {
       <WatchImeiModal
         open={Boolean(imeiFlow)}
         onClose={() => setImeiFlow(null)}
+        validation={imeiFlow ? { orderId: order.id, lineId: imeiFlow.lineId } : undefined}
         onConfirm={(imei) => {
           if (!imeiFlow) return;
           const path =

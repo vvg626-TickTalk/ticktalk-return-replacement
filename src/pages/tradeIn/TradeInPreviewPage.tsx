@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { TradeInSelectWatchModal } from '@/components/tradeIn/TradeInSelectWatchModal';
+import { buildTradeInPendingRma } from '@/features/serviceOrder/buildTradeInPendingRma';
+import { savePendingServiceOrder } from '@/features/serviceOrder/pendingServiceOrderStorage';
 import { TRADE_IN_NEW_WATCH_PRODUCT_IDS } from '@/features/tradeIn/tradeInConstants';
 import { loadTradeInDemo, patchTradeInDemo, seedTradeInFromAppEntry } from '@/features/tradeIn/tradeInDemoStorage';
 import {
   supportBodySmall,
   supportButtonPrimary,
+  supportButtonSecondary,
   supportLinkSubtle,
   supportModalTitle,
   supportSuccessCallout,
@@ -40,6 +43,21 @@ export function TradeInPreviewPage() {
       return;
     }
     setPickerOpen(true);
+  };
+
+  const onQueueForSignup = () => {
+    if (!demo) return;
+    const pendingRma = buildTradeInPendingRma(demo);
+    savePendingServiceOrder({
+      name: '',
+      email: '',
+      phoneDisplay: '',
+      orderId: pendingRma.orderId,
+      rmaCode: pendingRma.code,
+      customerId: undefined,
+      pendingRma,
+    });
+    navigate('/service/signup');
   };
 
   return (
@@ -81,6 +99,9 @@ export function TradeInPreviewPage() {
       <div className="flex flex-col gap-2">
         <button type="button" className={supportButtonPrimary} onClick={onShopNow}>
           Shop Now
+        </button>
+        <button type="button" className={supportButtonSecondary} onClick={onQueueForSignup}>
+          Save trade-in and sign up later (demo)
         </button>
         <Link to="/trade-in/app-entry" className={cn(supportLinkSubtle, 'text-center')}>
           Back to app entry

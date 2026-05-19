@@ -10,6 +10,11 @@ import { SERVICE_ACCOUNT_FOOTNOTE, SERVICE_AUTH_COPY } from '@/features/serviceO
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
 import type { RegisteredServiceRma } from '@/features/serviceOrder/types';
 import {
+  getDemoRmaStatusOverride,
+  listDemoContactMessagesForRma,
+  setDemoRmaStatusOverride,
+} from '@/features/serviceOrder/demoServiceLog';
+import {
   getCustomerById,
   getOrderById,
   getOrderLinesForOrder,
@@ -21,6 +26,7 @@ import {
 } from '@/mock-data';
 import type { Rma, RmaKind, RmaStatus } from '@/types/models';
 import { supportModalTitle } from '@/ui/supportTheme';
+import { fieldControl } from '@/ui/formControls';
 import { cn } from '@/utils/cn';
 
 type DetailModel = {
@@ -49,13 +55,22 @@ type DetailModel = {
   orderId?: string;
 };
 
-const CUSTOMER_NOTICE =
-  'The returned item does not match the return request. Please check your email for details.';
+const AWAITING_RESPONSE_NOTICE = 'We need more information before we can continue.';
 
 function kindLabel(kind: RmaKind): string {
   if (kind === 'replacement') return 'Replacement Request';
   if (kind === 'return') return 'Refund / Return Request';
+  if (kind === 'trade_in') return 'Trade-in Request';
   return 'Service Order';
+}
+
+function statusAllowsCancel(status: RmaStatus): boolean {
+  return (
+    status === 'pending' ||
+    status === 'return_in_review' ||
+    status === 'awaiting_your_reply' ||
+    status === 'backorder'
+  );
 }
 
 function formatUsd(cents: number): string {
@@ -67,14 +82,6 @@ function formatPhoneForDisplay(raw: string): string {
   if (d.length === 10) return domesticDigitsToDisplay(d);
   if (d.length === 11 && d.startsWith('1')) return domesticDigitsToDisplay(d.slice(1));
   return raw;
-}
-
-function canCancelReplacementRegistered(status: RmaStatus): boolean {
-  return status !== 'cancelled' && status !== 'shipped' && status !== 'refunded';
-}
-
-function canCancelReturnRegistered(status: RmaStatus): boolean {
-  return status !== 'cancelled' && status !== 'refunded';
 }
 
 function mockIssueDescription(rma: Rma): string {
@@ -171,6 +178,8 @@ export function AccountRmaDetailPage() {
   const navigate = useNavigate();
   const { registeredRmas, updateRegisteredRma, isAuthenticated } = useServiceOrderAccount();
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [mockRev, setMockRev] = useState(0);
+  const [responseDraft, setResponseDraft] = useState('');
 
   const replacementTimeline = useMemo(() => {
     const mock = getRmaById(rmaId);
@@ -178,13 +187,19 @@ export function AccountRmaDetailPage() {
     return listReplacementChainForLine(mock.orderLineId);
   }, [rmaId]);
 
+  const effectiveMock = useMemo(() => {
+    const mock = getRmaById(rmaId);
+    if (!mock) return null;
+    const ov = getDemoRmaStatusOverride(mock.id);
+    return ov ? { ...mock, status: ov } : mock;
+  }, [rmaId, mockRev]);
+
   const detail = useMemo(() => {
     const reg = findRegisteredRma(rmaId, registeredRmas);
     if (reg) return buildRegisteredDetail(reg);
-    const mock = getRmaById(rmaId);
-    if (mock) return buildMockDetail(mock);
+    if (effectiveMock) return buildMockDetail(effectiveMock);
     return null;
-  }, [rmaId, registeredRmas]);
+  }, [rmaId, registeredRmas, effectiveMock]);
 
   if (!isAuthenticated) {
     return (
@@ -210,31 +225,50 @@ export function AccountRmaDetailPage() {
   }
 
   const showCancel =
-    detail.isRegistered &&
-    (detail.kind === 'return'
-      ? canCancelReturnRegistered(detail.status)
-      : detail.kind === 'replacement'
-        ? canCancelReplacementRegistered(detail.status)
-        : false);
+    (detail.kind === 'return' || detail.kind === 'replacement') && statusAllowsCancel(detail.status);
 
   const cancelLabel = detail.kind === 'return' ? 'Cancel Return' : 'Cancel RMA';
 
   const onCancelYes = () => {
-    if (!detail.isRegistered) return;
-    updateRegisteredRma(detail.detailKey, {
-      status: 'cancelled',
-      customerStatusLabel: 'Cancelled',
-      updatedAt: new Date().toISOString(),
-      needsCustomerResponse: false,
-    });
+    if (detail.isRegistered) {
+      updateRegisteredRma(detail.detailKey, {
+        status: 'cancelled',
+        customerStatusLabel: 'Cancelled',
+        updatedAt: new Date().toISOString(),
+        needsCustomerResponse: false,
+      });
+    } else {
+      const m = getRmaById(rmaId);
+      if (m) {
+        setDemoRmaStatusOverride(m.id, 'cancelled');
+        setMockRev((n) => n + 1);
+      }
+    }
     setCancelOpen(false);
   };
 
-  const contactQuery = new URLSearchParams({
-    rma: detail.code,
-    subject: `RMA ${detail.code}`,
-  });
-  const contactHref = `/service/contact?${contactQuery.toString()}`;
+  const onSubmitResponse = () => {
+    if (!responseDraft.trim()) return;
+    if (detail.isRegistered) {
+      updateRegisteredRma(detail.detailKey, {
+        status: 'return_in_review',
+        customerStatusLabel: RMA_STATUS_CUSTOMER_LABEL.return_in_review,
+        updatedAt: new Date().toISOString(),
+        needsCustomerResponse: false,
+      });
+    } else {
+      const m = getRmaById(rmaId);
+      if (m) {
+        setDemoRmaStatusOverride(m.id, 'return_in_review');
+        setMockRev((n) => n + 1);
+      }
+    }
+    setResponseDraft('');
+  };
+
+  const contactHref = `/service/contact?rma=${encodeURIComponent(detail.code)}`;
+  const contactLog = listDemoContactMessagesForRma(detail.code);
+  const awaitingResponse = detail.status === 'awaiting_your_reply';
 
   return (
     <div className="space-y-5">
@@ -255,9 +289,31 @@ export function AccountRmaDetailPage() {
         </div>
       </div>
 
-      {detail.needsCustomerNotice ? (
-        <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm leading-relaxed text-rose-950">
-          {CUSTOMER_NOTICE}
+      {awaitingResponse ? (
+        <div className="rounded-2xl border border-rose-200/90 bg-rose-50/90 px-4 py-3 text-sm leading-relaxed text-rose-950">
+          <p className="font-semibold">{AWAITING_RESPONSE_NOTICE}</p>
+          <textarea
+            className={cn(fieldControl, 'mt-3 min-h-[5rem] text-sm')}
+            placeholder="Add a message or describe files you will upload (demo)."
+            value={responseDraft}
+            onChange={(e) => setResponseDraft(e.target.value)}
+          />
+          <p className="mt-2 text-xs text-rose-900/85">Optional: note additional files for your support agent (mock upload).</p>
+          <div className="mt-3">
+            <Button type="button" className="w-full sm:w-auto" disabled={!responseDraft.trim()} onClick={onSubmitResponse}>
+              Submit Response
+            </Button>
+          </div>
+        </div>
+      ) : detail.needsCustomerNotice && !awaitingResponse ? (
+        <div className="rounded-2xl border border-amber-200/90 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-950">
+          Please check recent messages from our team for the next step on this request (demo).
+        </div>
+      ) : null}
+
+      {detail.status === 'backorder' && detail.kind === 'replacement' ? (
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-800">
+          We received your request and will process it when the item is back in stock.
         </div>
       ) : null}
 
@@ -385,6 +441,23 @@ export function AccountRmaDetailPage() {
               ) : null}
             </p>
             <p className="mt-1 text-xs text-slate-600">Final amount is confirmed after we receive and inspect your package.</p>
+          </section>
+        ) : null}
+
+        {contactLog.length ? (
+          <section className="mt-6">
+            <h2 className="text-sm font-semibold text-support-navy">Your messages (demo)</h2>
+            <ul className="mt-2 space-y-2">
+              {contactLog.map((m) => (
+                <li key={m.id} className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2 text-xs text-slate-700">
+                  <p className="font-medium text-slate-900">{m.subject}</p>
+                  <p className="mt-1 whitespace-pre-line">{m.body}</p>
+                  <p className="mt-1 text-[10px] text-slate-400">
+                    {new Date(m.sentAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                  </p>
+                </li>
+              ))}
+            </ul>
           </section>
         ) : null}
 
