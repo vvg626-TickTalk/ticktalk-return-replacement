@@ -106,14 +106,14 @@ export function AccountRequestsPage() {
         />
       ) : (
         <>
-          <div className="flex justify-center">
-            <div className="inline-flex rounded-full bg-slate-100/80 p-1 ring-1 ring-slate-200/90">
+          <div className="flex w-full justify-center px-0 sm:px-1">
+            <div className="flex w-full max-w-2xl gap-2 rounded-2xl bg-slate-100/80 p-1 ring-1 ring-slate-200/90">
               <button
                 type="button"
                 className={cn(
-                  'rounded-full px-5 py-2 text-sm font-semibold transition',
+                  'flex min-h-14 flex-1 items-center justify-center rounded-xl px-3 text-[15px] font-semibold leading-tight transition sm:text-base',
                   activeTab === 'purchase'
-                    ? 'bg-support-navy text-white shadow-sm'
+                    ? 'bg-support-navy text-white shadow-sm ring-1 ring-support-navy/20'
                     : 'text-support-navy hover:text-support-navy/90',
                 )}
                 onClick={() => setActiveTab('purchase')}
@@ -123,9 +123,9 @@ export function AccountRequestsPage() {
               <button
                 type="button"
                 className={cn(
-                  'rounded-full px-5 py-2 text-sm font-semibold transition',
+                  'flex min-h-14 flex-1 items-center justify-center rounded-xl px-3 text-[15px] font-semibold leading-tight transition sm:text-base',
                   activeTab === 'service'
-                    ? 'bg-support-navy text-white shadow-sm'
+                    ? 'bg-support-navy text-white shadow-sm ring-1 ring-support-navy/20'
                     : 'text-support-navy hover:text-support-navy/90',
                 )}
                 onClick={() => setActiveTab('service')}
