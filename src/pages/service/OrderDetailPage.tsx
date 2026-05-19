@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ServiceMessageModal } from '@/components/ServiceMessageModal';
 import { WatchImeiModal } from '@/components/WatchImeiModal';
 import { lineRequiresImei } from '@/features/replacement/eligibility';
@@ -14,14 +14,16 @@ import {
 } from '@/features/serviceOrder/serviceLineActions';
 import { seedTradeInFromOrderLine } from '@/features/tradeIn/tradeInDemoStorage';
 import { tradeInCareStatusLine } from '@/features/tradeIn/tradeInCarePlus';
+import { RMA_STATUS_CUSTOMER_LABEL } from '@/features/serviceOrder/rmaStatusLabels';
 import {
+  OPEN_RMA_STATUSES,
+  getCustomerById,
   getOrderById,
   getOrderLinesForOrder,
   getProductById,
   listRmasForCustomer,
-  getCustomerById,
 } from '@/mock-data';
-import type { Order, OrderLine } from '@/types/models';
+import type { Order, OrderLine, RmaKind } from '@/types/models';
 import { supportButtonPrimary, supportButtonSecondary } from '@/ui/supportTheme';
 import { supportPanel, supportSectionHead } from '@/ui/supportPortalLayout';
 import { cn } from '@/utils/cn';
@@ -31,8 +33,29 @@ const channelLabel: Record<Order['channel'], string> = {
   amazon: 'Amazon',
   walmart: 'Walmart',
   bestbuy: 'Best Buy',
+  tiktok: 'TikTok Shop',
   other: 'Other',
 };
+
+function channelFootnote(channel: Order['channel']): string | null {
+  if (channel === 'tiktok') {
+    return 'TikTok Shop: use the 12-digit order ID from your in-app receipt. Some promo bundles ship separately.';
+  }
+  if (channel === 'amazon') {
+    return 'Amazon: if your unit is seller-fulfilled, Amazon may handle the first return window.';
+  }
+  if (channel === 'walmart') {
+    return 'Walmart: keep your store receipt PDF handy — serial checks may be required on high-value orders.';
+  }
+  return null;
+}
+
+function rmaKindShortLabel(kind: RmaKind): string {
+  if (kind === 'return') return 'Return';
+  if (kind === 'replacement') return 'Replacement';
+  if (kind === 'trade_in') return 'Trade-in';
+  return 'Service';
+}
 
 function LineServiceButtons({
   line,
@@ -155,9 +178,25 @@ export function OrderDetailPage() {
 
   const lines = getOrderLinesForOrder(order.id);
   const customer = order.customerId ? getCustomerById(order.customerId) : undefined;
-  const rmas = customer ? listRmasForCustomer(customer.id) : [];
+  const orderRmas = useMemo(() => {
+    if (!customer) return [];
+    return listRmasForCustomer(customer.id).filter((r) => r.orderId === order.id);
+  }, [customer, order.id]);
+  const openOrderRmas = useMemo(
+    () => orderRmas.filter((r) => OPEN_RMA_STATUSES.includes(r.status)),
+    [orderRmas],
+  );
+  const closedOrderRmas = useMemo(
+    () =>
+      orderRmas
+        .filter((r) => !OPEN_RMA_STATUSES.includes(r.status))
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+        .slice(0, 8),
+    [orderRmas],
+  );
   const groups = useMemo(() => groupOrderLinesForDisplay(lines), [lines]);
   const orderUnshipped = orderIsFullyUnshipped(lines);
+  const channelNote = channelFootnote(order.channel);
 
   const placed = new Date(order.createdAt).toLocaleDateString(undefined, {
     year: 'numeric',
@@ -256,6 +295,7 @@ export function OrderDetailPage() {
             <dd className="text-xs font-medium text-slate-900">{placed}</dd>
           </div>
         </dl>
+        {channelNote ? <p className="mt-2 text-[10px] leading-snug text-slate-500">{channelNote}</p> : null}
       </div>
 
       {customer ? (
@@ -298,22 +338,81 @@ export function OrderDetailPage() {
         </div>
       </div>
 
-      {rmas.length ? (
+      {orderRmas.length ? (
         <div className={supportPanel}>
-          <div className={supportSectionHead}>Open requests</div>
-          <ul className="divide-y divide-slate-100 px-2">
-            {rmas.map((rma) => (
-              <li key={rma.id} className="flex items-center justify-between gap-2 py-2">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-slate-900">RMA {rma.code}</p>
-                  <p className="text-[10px] text-slate-500">Linked to this customer</p>
-                </div>
-                <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
-                  {rma.status.replace(/_/g, ' ')}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <div className={supportSectionHead}>Service on this order</div>
+          {openOrderRmas.length ? (
+            <>
+              <p className="px-2 pt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                Active ({openOrderRmas.length})
+              </p>
+              <ul className="divide-y divide-slate-100 px-2">
+                {openOrderRmas.map((rma) => (
+                  <li key={rma.id} className="py-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <Link
+                          to={`/account/rma/${rma.id}`}
+                          className="text-xs font-semibold text-support-navy hover:underline"
+                        >
+                          {rmaKindShortLabel(rma.kind)} · {rma.code}
+                        </Link>
+                        {rma.summary ? (
+                          <p className="mt-0.5 text-[10px] leading-snug text-slate-600">{rma.summary}</p>
+                        ) : null}
+                        <p className="mt-0.5 text-[10px] text-slate-400">
+                          Updated{' '}
+                          {new Date(rma.updatedAt).toLocaleString(undefined, {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-950 ring-1 ring-amber-200/80">
+                        {RMA_STATUS_CUSTOMER_LABEL[rma.status]}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          {closedOrderRmas.length ? (
+            <>
+              <p className="px-2 pt-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                Completed · closed
+              </p>
+              <ul className="divide-y divide-slate-100 px-2">
+                {closedOrderRmas.map((rma) => (
+                  <li key={rma.id} className="py-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <Link
+                          to={`/account/rma/${rma.id}`}
+                          className="text-xs font-semibold text-slate-800 hover:underline"
+                        >
+                          {rmaKindShortLabel(rma.kind)} · {rma.code}
+                        </Link>
+                        {rma.summary ? (
+                          <p className="mt-0.5 text-[10px] leading-snug text-slate-600">{rma.summary}</p>
+                        ) : null}
+                        <p className="mt-0.5 text-[10px] text-slate-400">
+                          Closed{' '}
+                          {new Date(rma.updatedAt).toLocaleString(undefined, {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
+                        {RMA_STATUS_CUSTOMER_LABEL[rma.status]}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
         </div>
       ) : null}
 

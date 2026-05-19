@@ -2,6 +2,13 @@ import type { Product } from '@/types/models';
 
 export const products: Product[] = [
   {
+    id: 'prod-tt-watch-4',
+    name: 'TickTalk Watch 4',
+    kind: 'watch',
+    generation: 'TT4',
+    swatch: 'bg-violet-500',
+  },
+  {
     id: 'prod-tt-watch-5',
     name: 'TickTalk Watch 5',
     kind: 'watch',
@@ -22,9 +29,21 @@ export const products: Product[] = [
     swatch: 'bg-rose-200',
   },
   {
+    id: 'prod-strap-sport',
+    name: 'Sport Band',
+    kind: 'accessory',
+    swatch: 'bg-sky-300',
+  },
+  {
     id: 'prod-charger',
     name: 'TickTalk USB charging cable',
     kind: 'accessory',
     swatch: 'bg-amber-200',
+  },
+  {
+    id: 'prod-power-base',
+    name: 'TickTalk Power Base',
+    kind: 'accessory',
+    swatch: 'bg-slate-400',
   },
 ];

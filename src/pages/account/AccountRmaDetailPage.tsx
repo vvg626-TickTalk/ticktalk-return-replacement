@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
 import { ServiceMessageModal } from '@/components/ServiceMessageModal';
@@ -17,6 +17,7 @@ import {
   getReplacementRequestByRmaId,
   getReturnRequestByRmaId,
   getRmaById,
+  listReplacementChainForLine,
 } from '@/mock-data';
 import type { Rma, RmaKind, RmaStatus } from '@/types/models';
 import { supportModalTitle } from '@/ui/supportTheme';
@@ -126,7 +127,7 @@ function buildMockDetail(rma: Rma): DetailModel {
     addressMultiline,
     productLines,
     swatches,
-    issueDescription: mockIssueDescription(rma),
+    issueDescription: rma.summary ?? mockIssueDescription(rma),
     returnReasonText: rma.kind === 'return' ? mockIssueDescription(rma) : null,
     refundEstimateCents: ret?.refundTotalCents ?? null,
     returnShippingFeeCents: null,
@@ -170,6 +171,12 @@ export function AccountRmaDetailPage() {
   const navigate = useNavigate();
   const { registeredRmas, updateRegisteredRma, isAuthenticated } = useServiceOrderAccount();
   const [cancelOpen, setCancelOpen] = useState(false);
+
+  const replacementTimeline = useMemo(() => {
+    const mock = getRmaById(rmaId);
+    if (!mock?.orderLineId || mock.kind !== 'replacement') return [];
+    return listReplacementChainForLine(mock.orderLineId);
+  }, [rmaId]);
 
   const detail = useMemo(() => {
     const reg = findRegisteredRma(rmaId, registeredRmas);
@@ -302,6 +309,51 @@ export function AccountRmaDetailPage() {
             ))}
           </div>
         </section>
+
+        {replacementTimeline.length > 1 && detail.kind === 'replacement' ? (
+          <section className="mt-6">
+            <h2 className="text-sm font-semibold text-support-navy">Replacement history (same line)</h2>
+            <p className="mt-1 text-xs text-slate-600">
+              Linked replacements under the same watch line — oldest to newest (demo).
+            </p>
+            <ol className="mt-3 space-y-2">
+              {replacementTimeline.map((step) => {
+                const isCurrent = step.id === rmaId;
+                return (
+                  <li
+                    key={step.id}
+                    className={cn(
+                      'rounded-2xl border border-slate-200/90 px-3 py-2.5',
+                      isCurrent && 'border-teal-200 bg-teal-50/60 ring-1 ring-teal-100',
+                    )}
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <Link
+                        to={`/account/rma/${step.id}`}
+                        className={cn(
+                          'font-mono text-sm font-semibold hover:underline',
+                          isCurrent ? 'text-teal-950' : 'text-support-navy',
+                        )}
+                      >
+                        {step.code}
+                        {isCurrent ? ' · this request' : ''}
+                      </Link>
+                      <span className="text-xs font-medium text-slate-800">{RMA_STATUS_CUSTOMER_LABEL[step.status]}</span>
+                    </div>
+                    {step.summary ? <p className="mt-1 text-xs leading-snug text-slate-600">{step.summary}</p> : null}
+                    <p className="mt-1 text-[10px] text-slate-400">
+                      Updated{' '}
+                      {new Date(step.updatedAt).toLocaleString(undefined, {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      })}
+                    </p>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        ) : null}
 
         {detail.kind === 'replacement' ? (
           <section className="mt-6">

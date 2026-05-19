@@ -4,7 +4,7 @@ import type { RmaStatus } from '@/types/models';
 export const RMA_STATUS_CUSTOMER_LABEL: Record<RmaStatus, string> = {
   pending: 'Requested',
   awaiting_your_reply: 'Awaiting Your Response',
-  rejected: 'Cancelled',
+  rejected: 'Refund denied',
   waiting_for_your_shipment: 'Waiting for Customer Shipment',
   shipment_deadline_passed: 'Customer Shipment Overdue',
   shipped_by_customer: 'Customer Shipped',

@@ -3,7 +3,7 @@
  * Channel row formats follow PPT reference (single horizontal row of small boxes + inline separators).
  */
 
-export type ChannelId = 'myticktalk' | 'amazon' | 'walmart' | 'bestbuy';
+export type ChannelId = 'myticktalk' | 'amazon' | 'walmart' | 'bestbuy' | 'tiktok';
 
 export type SegmentKind = 'digits' | 'letters' | 'alphanumeric';
 
@@ -84,6 +84,15 @@ export const ORDER_LOOKUP_CHANNELS: ChannelOrderFormat[] = [
     exampleDisplay: 'BBY03 - 807142006365 - A',
     helpBody: 'Your Best Buy order number can be found in Order Details on BestBuy.com.',
   },
+  {
+    id: 'tiktok',
+    label: 'TikTok Shop',
+    cellGroups: [{ boxCount: 12, kind: 'digits' }],
+    betweenGroupSep: 'none',
+    storageJoin: 'none',
+    exampleDisplay: '883322441100',
+    helpBody: 'Your TikTok Shop order ID appears on your order details screen in the TikTok app (12 digits).',
+  },
 ];
 
 export const ORDER_LOOKUP_BY_ID: Record<ChannelId, ChannelOrderFormat> = ORDER_LOOKUP_CHANNELS.reduce(
@@ -158,6 +167,9 @@ export function composeExternalOrderRef(id: ChannelId, cells: string[]): string 
   if (id === 'myticktalk') {
     return myticktalkDigitsFromCells(cells);
   }
+  if (id === 'tiktok') {
+    return cells.join('');
+  }
   const groups = sliceCellsIntoGroups(fmt, cells);
   if (fmt.storageJoin === 'dashes') {
     return groups.join('-');
@@ -169,6 +181,9 @@ export function orderEntryComplete(id: ChannelId, cells: string[]): boolean {
   const fmt = ORDER_LOOKUP_BY_ID[id];
   if (id === 'myticktalk' && fmt.minDigits != null && fmt.maxDigits != null) {
     return myticktalkCellsComplete(cells, fmt.minDigits, fmt.maxDigits);
+  }
+  if (id === 'tiktok') {
+    return cells.length === totalCellCount(fmt) && cells.every((c) => cellCharValid(c, 'digits'));
   }
   let idx = 0;
   for (const g of fmt.cellGroups) {
@@ -219,6 +234,12 @@ export function distributePastedOrderToCells(id: ChannelId, raw: string): string
   if (id === 'walmart') {
     const d = t.replace(/\D/g, '');
     if (d.length !== 15) return null;
+    return d.split('');
+  }
+
+  if (id === 'tiktok') {
+    const d = t.replace(/\D/g, '');
+    if (d.length !== 12) return null;
     return d.split('');
   }
 

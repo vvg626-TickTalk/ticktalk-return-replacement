@@ -6,6 +6,7 @@ const channelLabel: Record<Order['channel'], string> = {
   amazon: 'Amazon',
   walmart: 'Walmart',
   bestbuy: 'Best Buy',
+  tiktok: 'TikTok Shop',
   other: 'Other',
 };
 

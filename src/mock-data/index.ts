@@ -1,30 +1,45 @@
-export { carePlusSubscriptions } from './carePlusSubscriptions';
-export { customers } from './customers';
-export { imeiRecords } from './imeis';
+export { customers } from './mockCustomers';
+export { orders, orderLines, imeiRecords } from './mockOrders';
+export {
+  carePlusSubscriptions,
+  messages,
+  replacementRequests,
+  returnRequests,
+  rmas,
+  warranties,
+} from './mockServiceOrders';
+export { tradeInRequests } from './mockTradeIns';
 export { inventory } from './inventory';
-export { messages } from './messages';
-export { orderLines } from './orderLines';
-export { orders } from './orders';
 export { products } from './products';
-export { replacementRequests } from './replacementRequests';
-export { returnRequests } from './returnRequests';
-export { rmas } from './rmas';
-export { tradeInRequests } from './tradeInRequests';
-export { warranties } from './warranties';
 
-import { carePlusSubscriptions } from './carePlusSubscriptions';
-import { customers } from './customers';
-import { imeiRecords } from './imeis';
-import { inventory } from './inventory';
-import { messages } from './messages';
-import { orderLines } from './orderLines';
-import { orders } from './orders';
+import { carePlusSubscriptions } from './mockServiceOrders';
+import { customers } from './mockCustomers';
+import { imeiRecords, orderLines, orders } from './mockOrders';
+import {
+  messages,
+  replacementRequests,
+  returnRequests,
+  rmas,
+  warranties,
+} from './mockServiceOrders';
 import { products } from './products';
-import { replacementRequests } from './replacementRequests';
-import { returnRequests } from './returnRequests';
-import { rmas } from './rmas';
-import { tradeInRequests } from './tradeInRequests';
-import { warranties } from './warranties';
+import { tradeInRequests } from './mockTradeIns';
+import { inventory } from './inventory';
+import type { Rma, RmaStatus } from '@/types/models';
+
+/** In-flight requests (consumer-facing hub / order detail). */
+export const OPEN_RMA_STATUSES: RmaStatus[] = [
+  'pending',
+  'awaiting_your_reply',
+  'return_in_review',
+  'backorder',
+  'inspection_in_progress',
+  'preparing_shipment',
+  'waiting_for_your_shipment',
+  'shipped_by_customer',
+  'shipment_deadline_passed',
+  'inspection_failed',
+];
 
 export function getCustomerById(id: string) {
   return customers.find((c) => c.id === id);
@@ -52,6 +67,26 @@ export function getRmaByCode(code: string) {
 
 export function listRmasForCustomer(customerId: string) {
   return rmas.filter((r) => r.customerId === customerId);
+}
+
+export function listOpenRmasForCustomer(customerId: string) {
+  return listRmasForCustomer(customerId)
+    .filter((r) => OPEN_RMA_STATUSES.includes(r.status))
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+}
+
+export function listRecentClosedRmasForCustomer(customerId: string, limit = 8) {
+  return listRmasForCustomer(customerId)
+    .filter((r) => !OPEN_RMA_STATUSES.includes(r.status))
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .slice(0, limit);
+}
+
+/** Replacement RMAs for the same order line, oldest → newest (demo timeline). */
+export function listReplacementChainForLine(orderLineId: string): Rma[] {
+  return rmas
+    .filter((r) => r.orderLineId === orderLineId && r.kind === 'replacement')
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
 export function listOrdersForCustomer(customerId: string) {

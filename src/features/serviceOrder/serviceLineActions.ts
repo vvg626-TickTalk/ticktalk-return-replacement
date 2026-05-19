@@ -88,14 +88,9 @@ const returnedBlocked: ServiceBlockedModal = {
   body: 'This item has already been returned.',
 };
 
-const tradeInBlockedInWarranty: ServiceBlockedModal = {
+const tradeInNotEligibleYet: ServiceBlockedModal = {
   title: 'Trade-in Not Available',
-  body: 'Trade-in is available when your device is outside the 1-year warranty and TickTalk Care+ is not active.',
-};
-
-const tradeInBlockedCarePlus: ServiceBlockedModal = {
-  title: 'Trade-in Not Available',
-  body: 'This device has active TickTalk Care+. Trade-in is offered when Care+ is not active.',
+  body: 'Trade-in is available once the 1-year warranty has ended or TickTalk Care+ is no longer active on your account.',
 };
 
 function isWithinReturnWindowLine(line: OrderLine, order: Order, referenceDate: Date): boolean {
@@ -201,11 +196,10 @@ export function getLineTradeInAction(
       showAsDisabled: true,
     };
   }
-  if (isWithinReplacementWarranty(line, order, referenceDate)) {
-    return { enabled: false, modal: tradeInBlockedInWarranty, showAsDisabled: true };
-  }
-  if (customerHasActiveCarePlus(order.customerId, referenceDate)) {
-    return { enabled: false, modal: tradeInBlockedCarePlus, showAsDisabled: true };
+  const inWarranty = isWithinReplacementWarranty(line, order, referenceDate);
+  const carePlusActive = customerHasActiveCarePlus(order.customerId, referenceDate);
+  if (inWarranty && carePlusActive) {
+    return { enabled: false, modal: tradeInNotEligibleYet, showAsDisabled: true };
   }
   return { enabled: true };
 }

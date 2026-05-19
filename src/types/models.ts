@@ -1,4 +1,4 @@
-export type Channel = 'myticktalk' | 'amazon' | 'walmart' | 'bestbuy' | 'other';
+export type Channel = 'myticktalk' | 'amazon' | 'walmart' | 'bestbuy' | 'tiktok' | 'other';
 
 export type ProductKind = 'watch' | 'accessory' | 'bundle_component';
 
@@ -74,6 +74,8 @@ export interface OrderLine {
   customerReceived?: boolean;
   /** Demo: item already returned — show status only, no service actions. */
   demoReturned?: boolean;
+  /** Demo: carrier / network (AT&T, eSIM, etc.) */
+  demoCarrier?: string;
 }
 
 export interface Order {
@@ -83,6 +85,8 @@ export interface Order {
   shippingPostal: string;
   customerId?: string;
   createdAt: string;
+  /** Demo: international vs domestic fulfillment notes */
+  shippingRegion?: 'domestic' | 'international';
 }
 
 export interface ImeiRecord {
@@ -107,6 +111,10 @@ export interface CarePlusSubscription {
   devicePhone: string;
   status: CarePlusStatus;
   expiresOn?: string;
+  /** Demo: tied order line */
+  orderLineId?: string;
+  /** Demo: entitlements blurb */
+  planNotes?: string;
 }
 
 export interface Rma {
@@ -118,12 +126,17 @@ export interface Rma {
   status: RmaStatus;
   createdAt: string;
   updatedAt: string;
+  deviceImei?: string;
+  orderLineId?: string;
+  parentRmaId?: string;
+  summary?: string;
 }
 
 export interface ReturnRequest {
   id: string;
   rmaId: string;
   refundTotalCents?: number;
+  refundDenied?: boolean;
 }
 
 export interface ReplacementRequest {
@@ -131,6 +144,8 @@ export interface ReplacementRequest {
   rmaId: string;
   replacementProductId?: string;
   restockHold: boolean;
+  replacementSequence?: number;
+  issueSummary?: string;
 }
 
 export interface TradeInRequest {
