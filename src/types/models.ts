@@ -67,6 +67,13 @@ export interface OrderLine {
   demoLineTotalCents?: number;
   /** Mock purchased color / finish name; used for replacement inventory (alternate color UX). */
   demoPurchasedColor?: string;
+  /**
+   * When `shipped`, `false` means still in transit / not received (PPT shipped-not-received).
+   * When `undefined`, treated as received for demo.
+   */
+  customerReceived?: boolean;
+  /** Demo: item already returned — show status only, no service actions. */
+  demoReturned?: boolean;
 }
 
 export interface Order {

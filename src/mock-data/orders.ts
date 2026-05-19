@@ -17,4 +17,13 @@ export const orders: Order[] = [
     customerId: 'cust-bj',
     createdAt: '2026-05-01T09:00:00.000Z',
   },
+  /** Shipped, in transit (not received) — PPT page 10 demo */
+  {
+    id: 'ord-103',
+    channel: 'myticktalk',
+    externalOrderRef: '100001',
+    shippingPostal: '94102',
+    customerId: 'cust-ada',
+    createdAt: '2026-05-12T09:00:00.000Z',
+  },
 ];

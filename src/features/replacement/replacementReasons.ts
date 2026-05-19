@@ -23,7 +23,6 @@ export type ReplacementReasonDef = {
   previewSummary: string;
   carePlusOnly?: boolean;
   introLines?: string[];
-  /** Reason 1 — optional micro-label above description */
   whenStartedLabel?: string;
   policyNote?: string;
   footerDisclaimer?: string;
@@ -34,7 +33,6 @@ export type ReplacementReasonDef = {
   upload: {
     type: ReasonUploadType;
     helper?: string;
-    /** First CTA before any mock file (progressive) */
     primaryCta?: string;
     linkText?: string;
     recommended?: boolean;
@@ -52,14 +50,14 @@ export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
     subtitle: '(No physical damage)',
     previewSummary: 'Display shows pixels or lines without physical damage.',
     whenStartedLabel: 'When did the issue start?',
-    description: { mode: 'optional', placeholder: 'Briefly describe the issue' },
+    description: { mode: 'optional', placeholder: 'Briefly describe the issue (optional if you add a photo)' },
     upload: {
       type: 'progressive',
-      helper: 'Clear photo of the screen while on. Optional.',
+      helper: 'One clear photo can replace a written description.',
       primaryCta: 'Upload photo',
       recommended: false,
     },
-    completion: {},
+    completion: { requireDescriptionOrUpload: true },
   },
   {
     id: 'screen_cracked',
@@ -81,40 +79,31 @@ export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
     subtitle: '(Won’t turn on)',
     previewSummary: 'Won’t power on or charge.',
     introLines: [
-      'Does anything appear on screen while charging?',
-      'Have you tried another original cable?',
+      'Does the screen respond when plugged in? Have you tried another original charging cable?',
     ],
-    description: { mode: 'optional', placeholder: 'Describe what happens when charging' },
-    upload: { type: 'behind_link', linkText: 'Add photos (optional)' },
-    footerDisclaimer: 'Our team may request additional photos later if needed.',
-    completion: {},
+    description: { mode: 'required', placeholder: 'Describe what happens when you charge it' },
+    upload: { type: 'none' },
+    footerDisclaimer: 'Our team may request additional photos if needed.',
+    completion: { requireDescription: true },
   },
   {
     id: 'hardware_io',
     label: 'Hardware Component Failure',
     subtitle: '(Buttons / Speaker / Mic)',
     previewSummary: 'Button, speaker, or microphone problem.',
-    introLines: [
-      'Which function is not working?',
-      'Examples: button stuck · no sound · microphone issue',
-    ],
-    description: { mode: 'optional', placeholder: 'Describe the issue' },
-    upload: {
-      type: 'progressive',
-      helper: 'Optional.',
-      primaryCta: 'Add photo or video (optional)',
-      recommended: false,
-    },
-    completion: {},
+    introLines: ['Which button or function is not working?'],
+    description: { mode: 'required', placeholder: 'Describe the issue' },
+    upload: { type: 'none' },
+    completion: { requireDescription: true },
   },
   {
     id: 'battery_hot',
     label: 'Battery Overheating',
     previewSummary: 'Battery runs hot.',
     introLines: ['Does it overheat while charging or during use?'],
-    description: { mode: 'optional', placeholder: 'Describe the overheating issue' },
-    upload: { type: 'behind_link', linkText: 'Add photos (optional)' },
-    completion: {},
+    description: { mode: 'required', placeholder: 'Describe the overheating issue' },
+    upload: { type: 'none' },
+    completion: { requireDescription: true },
   },
   {
     id: 'water_damage',
@@ -123,52 +112,54 @@ export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
     previewSummary: 'Liquid or water damage.',
     carePlusOnly: true,
     description: { mode: 'optional', placeholder: 'Briefly describe what happened' },
-    upload: { type: 'progressive', primaryCta: 'Upload photo', recommended: false },
+    upload: {
+      type: 'behind_link',
+      linkText: 'Add photo (optional)',
+    },
     completion: {},
   },
   {
     id: 'band_wristband_only',
     label: 'Broken wristband only',
     previewSummary: 'Wristband damage only.',
-    policyNote:
-      'Wristbands are wearable accessories. Standard coverage is limited.',
-    description: { mode: 'optional', placeholder: 'Describe the damaged area' },
+    policyNote: 'Wristbands are wearable accessories and have limited coverage.',
+    description: { mode: 'required', placeholder: 'Describe the damaged area' },
     upload: {
       type: 'progressive',
-      helper: 'Photos recommended.',
+      helper: 'Photo recommended.',
       primaryCta: 'Upload photo',
       recommended: true,
     },
-    completion: {},
+    completion: { requireDescription: true },
   },
   {
     id: 'band_connector_body',
     label: 'Connector / body damage',
     previewSummary: 'Connector or watch body damage.',
     policyNote:
-      'You can submit this for review. Final eligibility is decided by support.',
-    description: { mode: 'optional', placeholder: 'Describe the damaged area' },
+      'Coverage may differ for standard warranty and TickTalk Care+. You may still submit this request. Our support team will review it.',
+    description: { mode: 'required', placeholder: 'Describe the damaged area' },
     upload: {
       type: 'progressive',
-      helper: 'Photos recommended.',
+      helper: 'Photo recommended.',
       primaryCta: 'Upload photo',
       recommended: true,
     },
-    completion: {},
+    completion: { requireDescription: true },
   },
   {
     id: 'wrong_item',
     label: 'Wrong Item / Color / Quantity',
     previewSummary: 'Wrong item, color, or quantity.',
     introLines: ['What was incorrect or missing?'],
-    description: { mode: 'optional', placeholder: 'Describe what you received' },
+    description: { mode: 'required', placeholder: 'Describe what you received' },
     upload: {
       type: 'progressive',
-      helper: 'Items and shipping label. Recommended.',
+      helper: 'Received items and shipping label — recommended.',
       primaryCta: 'Upload photo',
       recommended: true,
     },
-    completion: {},
+    completion: { requireDescription: true },
   },
   {
     id: 'damaged_arrival',
@@ -176,24 +167,24 @@ export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
     subtitle: '(Product & packaging)',
     previewSummary: 'Damage when the package arrived.',
     introLines: ['Was the package visibly damaged when received?'],
-    description: { mode: 'optional', placeholder: 'Describe the damage' },
+    description: { mode: 'required', placeholder: 'Describe the damage' },
     upload: {
       type: 'progressive',
-      helper: 'Product and packaging photos help us file a shipping claim.',
+      helper: 'Damaged product and packaging — recommended.',
       primaryCta: 'Upload photo',
       recommended: true,
     },
-    completion: {},
+    completion: { requireDescription: true },
   },
   {
     id: 'other',
     label: 'Other Issue',
     previewSummary: 'Other issue.',
-    introLines: ['Please describe the issue'],
+    introLines: ['Please describe the issue.'],
     description: { mode: 'required', placeholder: 'Describe your issue' },
     upload: {
       type: 'behind_link',
-      linkText: 'Add photos or videos',
+      linkText: 'Add upload (optional)',
     },
     completion: { requireDescription: true },
   },

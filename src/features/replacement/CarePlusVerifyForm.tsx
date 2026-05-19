@@ -51,6 +51,7 @@ export function CarePlusVerifyForm({
   const [parentAccount, setParentAccount] = useState(defaultParentAccount);
   const [code, setCode] = useState('');
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const [codeSentOnce, setCodeSentOnce] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [forcedOutcome, setForcedOutcome] = useState<CarePlusForcedOutcome>('auto');
@@ -77,7 +78,8 @@ export function CarePlusVerifyForm({
     setError(null);
     if (!canSend) return;
     setSecondsLeft(300);
-    setToast('Code sent. Please enter it within 5 minutes.');
+    setCodeSentOnce(true);
+    setToast('Verification code sent. Please use it within 5 minutes.');
   };
 
   const submit = () => {
@@ -163,11 +165,19 @@ export function CarePlusVerifyForm({
         />
       </FormField>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <Button type="button" variant="secondary" className="min-h-12 w-full shrink-0 sm:w-auto" disabled={!canSend || secondsLeft > 0} onClick={send}>
-          {secondsLeft > 0 ? `Resend in ${mmss}` : 'Send verification code'}
+          {secondsLeft > 0 ? `Resend in ${mmss}` : 'Send Verification Code'}
         </Button>
-        <p className="text-xs leading-snug text-slate-600">Didn’t get it? Check spam folder or the number’s country code.</p>
+        <div className="text-xs leading-snug text-slate-600">
+          {codeSentOnce ? (
+            <button type="button" className="font-semibold text-support-navy underline" onClick={send} disabled={!canSend || secondsLeft > 0}>
+              Did not receive code?
+            </button>
+          ) : (
+            <span>We&apos;ll text a code after you tap Send Verification Code.</span>
+          )}
+        </div>
       </div>
 
       <FormField
@@ -187,32 +197,34 @@ export function CarePlusVerifyForm({
         />
       </FormField>
 
-      <details className="rounded-2xl bg-slate-50/80 ring-1 ring-slate-200/80">
-        <summary className="min-h-12 cursor-pointer list-none px-4 py-3 text-sm font-semibold text-slate-700 marker:hidden [&::-webkit-details-marker]:hidden">
-          QA · force an error (demo)
-        </summary>
-        <div className="border-t border-slate-200/80 px-4 pb-4 pt-3">
-          <label htmlFor="care-forced" className="sr-only">
-            Demo forced outcome
-          </label>
-          <select
-            id="care-forced"
-            className={`${fieldControl} appearance-auto`}
-            value={forcedOutcome}
-            onChange={(e) => setForcedOutcome(e.target.value as CarePlusForcedOutcome)}
-          >
-            <option value="auto">Auto — use code rules</option>
-            <option value="expired">Expired</option>
-            <option value="incorrect">Incorrect code</option>
-            <option value="mismatch">Account/phone mismatch</option>
-            <option value="limit">Daily limit</option>
-            <option value="unknown">Unknown error</option>
-          </select>
-          <p className="mt-2 text-xs leading-snug text-slate-500">
-            Codes 120001–120005 also map to errors when outcome is Auto.
-          </p>
-        </div>
-      </details>
+      {import.meta.env.DEV ? (
+        <details className="rounded-2xl bg-slate-50/80 ring-1 ring-slate-200/80">
+          <summary className="min-h-12 cursor-pointer list-none px-4 py-3 text-sm font-semibold text-slate-700 marker:hidden [&::-webkit-details-marker]:hidden">
+            QA · force an error (demo)
+          </summary>
+          <div className="border-t border-slate-200/80 px-4 pb-4 pt-3">
+            <label htmlFor="care-forced" className="sr-only">
+              Demo forced outcome
+            </label>
+            <select
+              id="care-forced"
+              className={`${fieldControl} appearance-auto`}
+              value={forcedOutcome}
+              onChange={(e) => setForcedOutcome(e.target.value as CarePlusForcedOutcome)}
+            >
+              <option value="auto">Auto — use code rules</option>
+              <option value="expired">Expired</option>
+              <option value="incorrect">Incorrect code</option>
+              <option value="mismatch">Account/phone mismatch</option>
+              <option value="limit">Daily limit</option>
+              <option value="unknown">Unknown error</option>
+            </select>
+            <p className="mt-2 text-xs leading-snug text-slate-500">
+              Codes 120001–120005 also map to errors when outcome is Auto.
+            </p>
+          </div>
+        </details>
+      ) : null}
 
       <div className="flex flex-col-reverse gap-2 border-t border-slate-200/90 pt-4 sm:flex-row sm:justify-end">
         <Button type="button" variant="secondary" className="min-h-12 w-full sm:w-auto" onClick={onCancel}>

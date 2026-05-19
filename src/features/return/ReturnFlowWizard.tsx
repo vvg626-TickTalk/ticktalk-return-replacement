@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { Order, OrderLine } from '@/types/models';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
@@ -41,6 +41,7 @@ import {
   type PerLineReturnReason,
   type ReturnReasonId,
 } from '@/features/return/returnReasons';
+import type { ServiceFlowLocationState } from '@/features/serviceOrder/serviceFlowLocation';
 import { getCustomerById, getOrderLinesForOrder, getProductById } from '@/mock-data';
 import { fieldControl, fieldControlMono, fieldTextarea } from '@/ui/formControls';
 import { supportPanel, supportSectionHead, supportToolbarBtn } from '@/ui/supportPortalLayout';
@@ -94,7 +95,11 @@ function emptyContact(): ContactForm {
 
 export function ReturnFlowWizard({ order }: { order: Order }) {
   const navigate = useNavigate();
-  const lines = getOrderLinesForOrder(order.id);
+  const location = useLocation();
+  const prefillReturn = (location.state as ServiceFlowLocationState | null)?.prefillReturn;
+  const prefillAppliedRef = useRef(false);
+
+  const lines = useMemo(() => getOrderLinesForOrder(order.id), [order.id]);
   const customer = order.customerId ? getCustomerById(order.customerId) : undefined;
 
   const [step, setStep] = useState<WizardStep>('items');
@@ -121,6 +126,24 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
   const [previewRemovePrimaryId, setPreviewRemovePrimaryId] = useState<string | null>(null);
 
   const [imeiByLineId, setImeiByLineId] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (prefillAppliedRef.current) return;
+    if (!prefillReturn?.lineId) return;
+    const line = lines.find((l) => l.id === prefillReturn.lineId);
+    if (!line) return;
+    const p = getProductById(line.productId);
+    if (!getReturnEligibility(line, p, order).selectable) return;
+    const imeiNorm = lineRequiresImei(p) ? normalizeImei(prefillReturn.imei) : '';
+    if (lineRequiresImei(p) && !isPlausibleImei(imeiNorm)) return;
+    prefillAppliedRef.current = true;
+    setPrimaryIds([prefillReturn.lineId]);
+    setImeiByLineId((prev) => ({
+      ...prev,
+      [prefillReturn.lineId]: imeiNorm,
+    }));
+    setStep('reasons');
+  }, [lines, order, prefillReturn]);
 
   const expandedLineIds = useMemo(() => expandPrimarySelection(primaryIds, lines), [lines, primaryIds]);
 
@@ -851,7 +874,18 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
 
       {step === 'reasons' ? (
         <WizardStickyActions>
-          <Button type="button" variant="secondary" className="w-full min-h-12 sm:w-auto" onClick={() => setStep('items')}>
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full min-h-12 sm:w-auto"
+            onClick={() => {
+              if (prefillAppliedRef.current) {
+                navigate(`/service/order/${order.id}`);
+                return;
+              }
+              setStep('items');
+            }}
+          >
             Back
           </Button>
           <Button

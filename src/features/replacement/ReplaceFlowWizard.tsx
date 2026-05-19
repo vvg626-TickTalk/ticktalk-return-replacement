@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { Order, OrderLine } from '@/types/models';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
@@ -48,6 +48,7 @@ import {
   clearPostReplacementPrefill,
   savePostReplacementPrefill,
 } from '@/features/serviceOrder/postReplacementPrefill';
+import type { ServiceFlowLocationState } from '@/features/serviceOrder/serviceFlowLocation';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
 import type { RegisteredServiceRma } from '@/features/serviceOrder/types';
 import { getCustomerById, getOrderLinesForOrder, getProductById } from '@/mock-data';
@@ -122,9 +123,12 @@ function emptyContact(): ContactForm {
 
 export function ReplaceFlowWizard({ order }: { order: Order }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, addRegisteredRma, profile } = useServiceOrderAccount();
   const lines = useMemo(() => getOrderLinesForOrder(order.id), [order.id]);
   const customer = order.customerId ? getCustomerById(order.customerId) : undefined;
+  const prefillReplace = (location.state as ServiceFlowLocationState | null)?.prefillReplace;
+  const prefillAppliedRef = useRef(false);
 
   const eligibleLines = useMemo(() => {
     return lines.filter((l) => {
@@ -136,7 +140,13 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
   const [step, setStep] = useState<WizardStep>('items');
   const [selections, setSelections] = useState<SelectionRow[]>([]);
   const [reasonByLineId, setReasonByLineId] = useState<Record<string, PerItemReasonForm>>({});
-  const [carePlusVerified, setCarePlusVerified] = useState(false);
+  const [carePlusVerified, setCarePlusVerified] = useState(() => {
+    try {
+      return sessionStorage.getItem(`tt-careplus:${order.id}`) === '1';
+    } catch {
+      return false;
+    }
+  });
   const [addressMode, setAddressMode] = useState<AddressMode>('domestic');
   const [contact, setContact] = useState<ContactForm>(() => {
     const base = emptyContact();
@@ -171,8 +181,21 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
   const [stockFlow, setStockFlow] = useState<StockFlowState>(null);
   const [selectedStockOptionId, setSelectedStockOptionId] = useState<string | null>(null);
 
-  const [policyAcknowledged, setPolicyAcknowledged] = useState(false);
   const [policyDetailsOpen, setPolicyDetailsOpen] = useState(false);
+
+  useEffect(() => {
+    if (prefillAppliedRef.current) return;
+    if (!prefillReplace?.lineId) return;
+    const line = lines.find((l) => l.id === prefillReplace.lineId);
+    if (!line) return;
+    const p = getProductById(line.productId);
+    if (!isLineReplaceEligible(line, p)) return;
+    const imeiNorm = lineRequiresImei(p) ? normalizeImei(prefillReplace.imei) : '';
+    if (lineRequiresImei(p) && !isPlausibleImei(imeiNorm)) return;
+    prefillAppliedRef.current = true;
+    setSelections([{ orderLineId: line.id, imei: imeiNorm }]);
+    setStep('reasons');
+  }, [lines, prefillReplace]);
 
   const persistReplacementPrefill = useCallback((): Omit<RegisteredServiceRma, 'localId'> | null => {
     if (!rmaCode) return null;
@@ -251,7 +274,6 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
   }, [addDraft, eligibleLines]);
 
   const canLeaveItems = useMemo(() => {
-    if (!policyAcknowledged) return false;
     if (selections.length === 0) return false;
     return selections.every((s) => {
       const line = lines.find((l) => l.id === s.orderLineId);
@@ -259,7 +281,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
       if (!lineRequiresImei(p)) return true;
       return isPlausibleImei(s.imei);
     });
-  }, [lines, policyAcknowledged, selections]);
+  }, [lines, selections]);
 
   const canLeaveReasons = useMemo(() => {
     const ids = selections.map((s) => s.orderLineId);
@@ -408,8 +430,8 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
     <div className={cn('space-y-5', step !== 'confirmation' && 'pb-[5.5rem] sm:pb-6')}>
       <PageHeader
         eyebrow="Replace"
-        title="Replacement request"
-        description="Preview build—answers aren’t saved. Steps match the planned live flow."
+        title="Request replacement"
+        description="Choose the issue for each selected item. Add another product after the current issue is complete."
         actions={
           <Button variant="secondary" onClick={() => navigate(`/service/order/${order.id}`)}>
             Exit
@@ -442,10 +464,8 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
           </div>
 
           <div className="mt-4 rounded-2xl bg-slate-50/80 p-4 ring-1 ring-slate-100/90 sm:p-5">
-            <p className="text-sm font-semibold text-brand-ink">Replacement terms</p>
-            <p className="mt-1 text-sm leading-snug text-slate-600">
-              Service rules apply. Some issue types are covered under TickTalk Care+. This preview doesn’t ship products or
-              process payment.
+            <p className="text-sm leading-snug text-slate-600">
+              You already agreed to the return and replacement terms when you started this request. Need a refresher?
             </p>
             <button
               type="button"
@@ -454,17 +474,6 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
             >
               View policy summary
             </button>
-            <label className="mt-4 flex min-h-12 cursor-pointer items-start gap-3 rounded-2xl border border-slate-200/90 bg-white p-3 ring-1 ring-slate-100/80">
-              <input
-                type="checkbox"
-                className="mt-1 h-5 w-5 shrink-0 rounded border-slate-300 text-support-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-support-navy/25 focus-visible:ring-offset-2"
-                checked={policyAcknowledged}
-                onChange={(e) => setPolicyAcknowledged(e.target.checked)}
-              />
-              <span className="text-sm leading-snug text-brand-ink">
-                I’ve read the summary and agree to these terms for this request.
-              </span>
-            </label>
           </div>
 
           {eligibleLines.length === 0 ? (
@@ -492,10 +501,11 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
                         type="button"
                         variant="secondary"
                         size="sm"
-                        className="shrink-0"
+                        className="min-h-9 w-9 shrink-0 px-0 text-lg font-normal"
                         onClick={() => setRemoveIndex(idx)}
+                        aria-label="Remove item"
                       >
-                        Remove
+                        ×
                       </Button>
                     }
                   />
@@ -540,11 +550,14 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
 
       {step === 'reasons' ? (
         <div className={supportPanel}>
-          <div className={supportSectionHead}>Issue</div>
-          <div className="px-2 py-1.5">
+          <div className={supportSectionHead}>Issue description</div>
+          <div className="border-b border-slate-100 px-3 py-2">
             <p className="text-[11px] leading-snug text-slate-600">
-            A few choices include TickTalk Care+ coverage—we’ll ask you to confirm only when it applies.
-          </p>
+              {REPLACEMENT_ADD_ITEMS_EMPTY_HELPER}
+            </p>
+            <p className="mt-1 text-[11px] leading-snug text-slate-600">
+              A few choices require TickTalk Care+—we&apos;ll confirm only when it applies.
+            </p>
           </div>
           <div className="divide-y divide-slate-200 border-t border-slate-200">
             {selections.map((s) => {
@@ -892,16 +905,33 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
 
       {step === 'reasons' ? (
         <WizardStickyActions>
-          <Button type="button" variant="secondary" className="w-full min-h-12 sm:w-auto" onClick={() => setStep('items')}>
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full min-h-12 sm:w-auto"
+            onClick={() => {
+              if (prefillAppliedRef.current) {
+                navigate(`/service/order/${order.id}`);
+                return;
+              }
+              setStep('items');
+            }}
+          >
             Back
           </Button>
-          <AddItemsToolbarSlot disabled={addItemsDisabled}>
+          <AddItemsToolbarSlot disabled={addItemsDisabled || !canLeaveReasons}>
             <Button
               type="button"
               variant="secondary"
               className="w-full min-h-12 sm:w-auto"
-              disabled={addItemsDisabled}
-              title={addItemsDisabled ? NO_ADDITIONAL_ELIGIBLE_ITEMS : undefined}
+              disabled={addItemsDisabled || !canLeaveReasons}
+              title={
+                addItemsDisabled
+                  ? NO_ADDITIONAL_ELIGIBLE_ITEMS
+                  : !canLeaveReasons
+                    ? 'Complete the issue for the current item first'
+                    : undefined
+              }
               onClick={startAdd}
             >
               {ADD_ITEMS_CTA}
@@ -1108,8 +1138,8 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
       <Modal
         open={!!carePlus && carePlus.phase === 'gate'}
         onClose={() => setCarePlus(null)}
-        title="TickTalk Care+"
-        description="This issue is covered for TickTalk Care+ users only."
+        title="Care+ required"
+        description="This issue type is covered for TickTalk Care+ members only."
         secondaryAction={{
           label: 'Cancel',
           onClick: () => setCarePlus(null),
@@ -1131,6 +1161,11 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
           onVerified={() => {
             const c = carePlusRef.current;
             if (!c || c.phase !== 'verify') return;
+            try {
+              sessionStorage.setItem(`tt-careplus:${order.id}`, '1');
+            } catch {
+              /* ignore */
+            }
             setReasonByLineId((prev) => ({
               ...prev,
               [c.lineId]: { ...emptyReasonForm(), reasonId: c.reasonId },

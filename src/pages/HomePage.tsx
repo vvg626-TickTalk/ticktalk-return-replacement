@@ -71,6 +71,12 @@ export function HomePage() {
         <p className="text-sm font-semibold text-brand-ink">Try mock IDs</p>
         <ul className="mt-3 space-y-2 text-sm text-slate-700">
           <li>
+            <span className="font-semibold">In transit (not received):</span>{' '}
+            <Link className="font-mono text-teal-900 hover:underline" to="/service/order/ord-103">
+              ord-103
+            </Link>
+          </li>
+          <li>
             <span className="font-semibold">Order:</span>{' '}
             <Link className="font-mono text-teal-900 hover:underline" to="/service/order/ord-101">
               ord-101

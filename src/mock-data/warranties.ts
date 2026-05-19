@@ -8,4 +8,18 @@ export const warranties: Warranty[] = [
     endsOn: '2027-04-22',
     tier: 'care_plus',
   },
+  {
+    id: 'wty-103-a',
+    orderLineId: 'line-ord-103-a',
+    startsOn: '2026-05-13',
+    endsOn: '2027-05-13',
+    tier: 'standard',
+  },
+  {
+    id: 'wty-103-b',
+    orderLineId: 'line-ord-103-b',
+    startsOn: '2026-05-13',
+    endsOn: '2027-05-13',
+    tier: 'standard',
+  },
 ];

@@ -1,68 +1,60 @@
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/Button';
-import { Card } from '@/components/Card';
-import { PageHeader } from '@/components/PageHeader';
+import {
+  supportBody,
+  supportButtonPrimary,
+  supportButtonSecondary,
+  supportPageTitle,
+} from '@/ui/supportTheme';
+import { supportPanel } from '@/ui/supportPortalLayout';
+import { cn } from '@/utils/cn';
 
 export function ServiceHubPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="After-sales"
-        title="Service hub"
-        description="Pick a path. Flows are skeletons—navigation and layout come first."
-      />
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <p className="text-sm font-semibold text-brand-ink">First visit</p>
-          <p className="mt-2 text-sm text-slate-600">
-            Short CTAs: New here / Have an Account (see docs/copy-notes.md).
-          </p>
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-            <Button className="w-full sm:w-auto" onClick={() => navigate('/service/new')}>
-              New here
-            </Button>
-            <Button
-              className="w-full sm:w-auto"
-              variant="secondary"
-              onClick={() => navigate('/service/login')}
-            >
-              Have an Account
-            </Button>
-          </div>
-        </Card>
-
-        <Card>
-          <p className="text-sm font-semibold text-brand-ink">Order tools</p>
-          <p className="mt-2 text-sm text-slate-600">Lookup without logging in (demo stub).</p>
-          <div className="mt-4">
-            <Button variant="secondary" onClick={() => navigate('/service/order-lookup')}>
-              Order lookup
-            </Button>
-          </div>
-        </Card>
+    <div className="mx-auto max-w-lg space-y-4 px-1 pb-10">
+      <div>
+        <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">After-sales</p>
+        <h1 className={cn(supportPageTitle, 'mt-1')}>Service</h1>
+        <p className={cn(supportBody, 'mt-2')}>
+          Returns, replacements, and quick order tools. Mobile-first steps—no dashboard clutter.
+        </p>
       </div>
 
-      <Card className="bg-brand-mist/60">
-        <p className="text-sm font-semibold text-brand-ink">More demos</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Button variant="ghost" className="ring-1 ring-brand-line" onClick={() => navigate('/service/trade-in')}>
-            Trade-in
-          </Button>
-          <Button variant="ghost" className="ring-1 ring-brand-line" onClick={() => navigate('/service/preview')}>
-            Preview
-          </Button>
-          <Button
-            variant="ghost"
-            className="ring-1 ring-brand-line"
-            onClick={() => navigate('/service/confirmation')}
-          >
-            Confirmation
-          </Button>
+      <div className={supportPanel}>
+        <div className="border-b border-slate-100 px-4 py-3">
+          <p className="text-[13px] font-semibold text-support-navy">Return &amp; Replacement</p>
+          <p className="mt-1 text-[13px] leading-snug text-slate-600">
+            Agree to policy, then look up your order or sign in.
+          </p>
         </div>
-      </Card>
+        <div className="flex flex-col gap-2 p-4 sm:flex-row">
+          <button type="button" className={cn(supportButtonPrimary, 'w-full sm:flex-1')} onClick={() => navigate('/service/new')}>
+            Start
+          </button>
+          <button
+            type="button"
+            className={cn(supportButtonSecondary, 'w-full sm:flex-1')}
+            onClick={() => navigate('/service/order-lookup')}
+          >
+            Order lookup
+          </button>
+        </div>
+      </div>
+
+      <div className={supportPanel}>
+        <div className="px-4 py-3">
+          <p className="text-[13px] font-semibold text-support-navy">Account</p>
+          <p className="mt-1 text-[13px] text-slate-600">Sign in to continue an existing request.</p>
+          <button
+            type="button"
+            className={cn(supportButtonSecondary, 'mt-3 w-full')}
+            onClick={() => navigate('/service/login')}
+          >
+            Sign in
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
