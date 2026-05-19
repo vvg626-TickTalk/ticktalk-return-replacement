@@ -299,7 +299,7 @@ export const rmas: Rma[] = [
     createdAt: '2026-04-12T12:00:00.000Z',
     updatedAt: '2026-04-18T14:00:00.000Z',
     orderLineId: 'line-qa-09-a',
-    summary: 'Replacement unit shipped — Tier 1',
+    summary: 'Care+ replacement shipped — watch Tier 1 exchange (demo).',
   },
   {
     id: 'rma-qa-06',
@@ -313,6 +313,44 @@ export const rmas: Rma[] = [
     orderLineId: 'line-qa-10-a',
     summary: 'Return received — inspection',
   },
+  {
+    id: 'rma-ada-lbl',
+    code: 'TT-LBL1',
+    orderId: 'ord-105',
+    customerId: 'cust-ada',
+    kind: 'return',
+    status: 'waiting_for_your_shipment',
+    createdAt: '2026-05-17T09:00:00.000Z',
+    updatedAt: '2026-05-17T09:30:00.000Z',
+    orderLineId: 'line-ord-105-a',
+    deviceImei: '356789044444444',
+    summary: 'Return for refund — prepaid label issued; drop off by May 24 (demo).',
+  },
+  {
+    id: 'rma-ada-recv',
+    code: 'TT-RCV1',
+    orderId: 'ord-104',
+    customerId: 'cust-ada',
+    kind: 'return',
+    status: 'inspection_in_progress',
+    createdAt: '2026-05-16T11:00:00.000Z',
+    updatedAt: '2026-05-18T14:00:00.000Z',
+    orderLineId: 'line-ord-104-a',
+    summary: 'Device received — accessory return unpacked and in inspection (demo).',
+  },
+  {
+    id: 'rma-ada-prep',
+    code: 'TT-PREP1',
+    orderId: 'ord-103',
+    customerId: 'cust-ada',
+    kind: 'replacement',
+    status: 'preparing_shipment',
+    createdAt: '2026-05-16T08:00:00.000Z',
+    updatedAt: '2026-05-17T10:00:00.000Z',
+    orderLineId: 'line-ord-103-b',
+    deviceImei: '356789012340012',
+    summary: 'Replacement shipped soon — standard exchange passed QA; preparing shipment (demo).',
+  },
 ];
 
 export const returnRequests: ReturnRequest[] = [
@@ -320,6 +358,7 @@ export const returnRequests: ReturnRequest[] = [
   { id: 'ret-elena', rmaId: 'rma-elena-r1', refundTotalCents: 159_99 },
   { id: 'ret-j2', rmaId: 'rma-jor-02', refundTotalCents: 25_98 },
   { id: 'ret-qa2', rmaId: 'rma-qa-02', refundDenied: true },
+  { id: 'ret-lbl1', rmaId: 'rma-ada-lbl', refundTotalCents: 199_99 },
 ];
 
 export const replacementRequests: ReplacementRequest[] = [
@@ -328,8 +367,9 @@ export const replacementRequests: ReplacementRequest[] = [
   { id: 'rep-9f0', rmaId: 'rma-fam-9f0', replacementProductId: 'prod-tt-watch-5', restockHold: false, issueSummary: 'Speaker', replacementSequence: 2 },
   { id: 'rep-8a2', rmaId: 'rma-fam-8a2', replacementProductId: 'prod-tt-watch-5', restockHold: false, issueSummary: 'Original defect', replacementSequence: 1 },
   { id: 'rep-mp1', rmaId: 'rma-marian-p1', replacementProductId: 'prod-tt-watch-5', restockHold: false, issueSummary: 'Charging', replacementSequence: 2 },
-  { id: 'rep-mp0', rmaId: 'rma-marian-p0', replacementProductId: 'prod-tt-watch-5', restockHold: false, issueSummary: 'Cracked lens', replacementSequence: 1 },
+  { id: 'rep-mp0', rmaId: 'rma-marian-p0', replacementProductId: 'prod-tt-watch-5', restockHold: false, issueSummary: 'Cracked lens (Care+)', replacementSequence: 1 },
   { id: 'rep-qa5', rmaId: 'rma-qa-05', replacementProductId: 'prod-tt-watch-6', restockHold: false, issueSummary: 'Dead pixel', replacementSequence: 1 },
+  { id: 'rep-prep1', rmaId: 'rma-ada-prep', replacementProductId: 'prod-tt-watch-6', restockHold: false, issueSummary: 'Power button intermittent', replacementSequence: 1 },
 ];
 
 export const messages: Message[] = [

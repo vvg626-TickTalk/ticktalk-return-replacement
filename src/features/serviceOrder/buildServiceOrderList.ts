@@ -10,7 +10,7 @@ import {
   tradeInRequests,
 } from '@/mock-data';
 import { RMA_STATUS_CUSTOMER_LABEL } from '@/features/serviceOrder/rmaStatusLabels';
-import { customerIdForServiceProfile } from '@/features/serviceOrder/serviceCustomerLink';
+import { resolveDemoPortalCatalogCustomerIds } from '@/features/serviceOrder/demoPortalCatalog';
 import type { RegisteredServiceRma, ServiceOrderProfile } from '@/features/serviceOrder/types';
 
 export type ServiceOrderListRow = {
@@ -51,12 +51,13 @@ const CHANNEL_SHORT: Record<Order['channel'], string> = {
 };
 
 function tradeInStatusLabel(state: TradeInRequest['state']): string {
-  if (state === 'quoted') return 'Requested';
-  if (state === 'applied') return 'Credit applied';
+  if (state === 'quoted') return 'Quote ready';
+  if (state === 'applied') return 'Approved · credit applied';
   return 'Cancelled';
 }
 
 function issueDescriptionForMockRma(rma: Rma): string {
+  if (rma.summary?.trim()) return rma.summary.trim();
   const ret = getReturnRequestByRmaId(rma.id);
   const rep = getReplacementRequestByRmaId(rma.id);
   if (rma.kind === 'return') {
@@ -124,8 +125,10 @@ export function buildServiceOrderList(
     });
   }
 
-  const custId = profile.linkedCustomerId ?? customerIdForServiceProfile(profile);
-  if (custId) {
+  const catalogCustomerIds = resolveDemoPortalCatalogCustomerIds(profile);
+  const seenPurchaseRowIds = new Set<string>();
+
+  for (const custId of catalogCustomerIds) {
     const demoRmas = listRmasForCustomer(custId);
     for (const rma of demoRmas) {
       if (mine.some((r) => r.code === rma.code)) continue;
@@ -134,7 +137,10 @@ export function buildServiceOrderList(
 
     for (const order of listOrdersForCustomer(custId)) {
       const po = orderToPurchaseRow(order.id);
-      if (po && !rows.some((row) => row.id === po.id)) rows.push(po);
+      if (po && !seenPurchaseRowIds.has(po.id)) {
+        seenPurchaseRowIds.add(po.id);
+        rows.push(po);
+      }
     }
 
     for (const t of tradeInRequests) {
@@ -193,6 +199,24 @@ function tradeInToRow(t: TradeInRequest, requestDateFallback: string): ServiceOr
   };
 }
 
+function purchaseOrderListStatusLabel(orderId: string): string {
+  const lines = getOrderLinesForOrder(orderId);
+  if (lines.length === 0) return 'Delivered';
+
+  const inTransit = lines.some((l) => l.status === 'shipped' && l.customerReceived === false);
+  if (inTransit) return 'In transit';
+
+  const deliveredLines = lines.filter((l) => l.status === 'shipped');
+  if (deliveredLines.length > 0) {
+    const anyReturned = deliveredLines.some((l) => l.demoReturned === true);
+    const allReturned = deliveredLines.every((l) => l.demoReturned === true);
+    if (allReturned) return 'Returned';
+    if (anyReturned) return 'Delivered · partial return';
+  }
+
+  return 'Delivered';
+}
+
 function orderToPurchaseRow(orderId: string): ServiceOrderListRow | null {
   const order = getOrderById(orderId);
   if (!order) return null;
@@ -203,7 +227,7 @@ function orderToPurchaseRow(orderId: string): ServiceOrderListRow | null {
     listType: 'purchase_order',
     typeLabel: LIST_TYPE_LABEL.purchase_order,
     reference: order.externalOrderRef,
-    statusLabel: 'Delivered',
+    statusLabel: purchaseOrderListStatusLabel(orderId),
     requestDate: order.createdAt,
     detailPath: `/service/order/${order.id}`,
     swatches: thumbForOrder(order.id),

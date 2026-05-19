@@ -3,6 +3,7 @@ import type { TradeInRequest } from '@/types/models';
 export const tradeInRequests: TradeInRequest[] = [
   {
     id: 'tri-001',
+    rmaId: 'TT-TI-201',
     orderId: 'ord-201',
     brand: 'TickTalk',
     quotedValueCents: 5000,
@@ -11,6 +12,7 @@ export const tradeInRequests: TradeInRequest[] = [
   },
   {
     id: 'tri-loy',
+    rmaId: 'TT-TI-LOY',
     orderId: 'ord-loy-04',
     brand: 'TickTalk',
     quotedValueCents: 3500,
