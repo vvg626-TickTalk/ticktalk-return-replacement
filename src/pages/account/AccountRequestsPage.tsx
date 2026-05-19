@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
 import { consumePreferServiceOrdersTab } from '@/features/serviceOrder/accountRequestsTabPreference';
-import { buildServiceOrderList, type ServiceOrderListRow } from '@/features/serviceOrder/buildServiceOrderList';
+import { buildAccountRequestsList, isDemoAccountListSeedDisabled, type ServiceOrderListRow } from '@/features/serviceOrder/buildServiceOrderList';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
 import { SERVICE_ACCOUNT_FOOTNOTE } from '@/features/serviceOrder/serviceAuthCopy';
 import { supportButtonSecondary, supportModalTitle } from '@/ui/supportTheme';
@@ -45,7 +45,8 @@ function ServiceAttachments({ row }: { row: ServiceOrderListRow }) {
 export function AccountRequestsPage() {
   const navigate = useNavigate();
   const { profile, registeredRmas, isAuthenticated } = useServiceOrderAccount();
-  const rows = useMemo(() => buildServiceOrderList(profile, registeredRmas), [profile, registeredRmas]);
+  const rows = useMemo(() => buildAccountRequestsList(profile, registeredRmas), [profile, registeredRmas]);
+  const showDemoSampleBanner = isAuthenticated && !isDemoAccountListSeedDisabled();
   const [activeTab, setActiveTab] = useState<'purchase' | 'service'>(() =>
     consumePreferServiceOrdersTab() ? 'service' : 'purchase',
   );
@@ -85,6 +86,9 @@ export function AccountRequestsPage() {
         <div>
           <h1 className={supportModalTitle}>Your Orders</h1>
           <p className="mt-1 text-sm text-slate-600">{SERVICE_ACCOUNT_FOOTNOTE}</p>
+          {showDemoSampleBanner ? (
+            <p className="mt-1.5 text-[11px] leading-snug text-slate-400">Demo account loaded with sample orders.</p>
+          ) : null}
         </div>
         <Link
           to="/service/order-lookup"

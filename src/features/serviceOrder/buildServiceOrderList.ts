@@ -3,6 +3,7 @@ import {
   getOrderById,
   getOrderLinesForOrder,
   getProductById,
+  getRmaById,
   listOrdersForCustomer,
   listRmasForCustomer,
   getReplacementRequestByRmaId,
@@ -69,6 +70,150 @@ function issueDescriptionForMockRma(rma: Rma): string {
       : 'Replacement request (demo).';
   }
   return 'Service record (demo).';
+}
+
+const DEMO_LIST_SEED_STORAGE_KEY = 'tt_service_demo_account_list_seed_v1';
+const DEMO_LIST_SEED_VERSION = 1;
+
+/** When `VITE_DISABLE_DEMO_SEED === 'true'`, skip localStorage demo list seeding (empty state allowed). */
+export function isDemoAccountListSeedDisabled(): boolean {
+  return import.meta.env.VITE_DISABLE_DEMO_SEED === 'true';
+}
+
+function loadPersistedDemoListRowsInternal(): ServiceOrderListRow[] | null {
+  if (isDemoAccountListSeedDisabled()) return null;
+  try {
+    const raw = localStorage.getItem(DEMO_LIST_SEED_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { v: number; rows: ServiceOrderListRow[] };
+    if (parsed.v !== DEMO_LIST_SEED_VERSION || !Array.isArray(parsed.rows)) return null;
+    return parsed.rows;
+  } catch {
+    return null;
+  }
+}
+
+function savePersistedDemoListRowsInternal(rows: ServiceOrderListRow[]): void {
+  if (isDemoAccountListSeedDisabled()) return;
+  try {
+    localStorage.setItem(
+      DEMO_LIST_SEED_STORAGE_KEY,
+      JSON.stringify({ v: DEMO_LIST_SEED_VERSION, rows }),
+    );
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+/** Deterministic sample rows (3 PO + return / replacement / trade-in) for empty-catalog / edge deploys. */
+export function buildDemoFallbackListRows(): ServiceOrderListRow[] {
+  const rows: ServiceOrderListRow[] = [];
+  const poIds = ['ord-101', 'ord-intl-07', 'ord-102'];
+  const rmaIds = ['rma-5001', 'rma-5002', 'rma-5003', 'rma-fam-9f0'];
+  for (const oid of poIds) {
+    const po = orderToPurchaseRow(oid);
+    if (po) rows.push(po);
+  }
+  for (const rid of rmaIds) {
+    const rma = getRmaById(rid);
+    if (rma) rows.push(rmaToRow(rma));
+  }
+  const ti = tradeInRequests.find((t) => t.id === 'tri-loy');
+  if (ti) {
+    const o = ti.orderId ? getOrderById(ti.orderId) : undefined;
+    rows.push(tradeInToRow(ti, o?.createdAt ?? '2022-11-10T12:00:00.000Z'));
+  }
+  return rows;
+}
+
+function countPurchaseAndService(list: ServiceOrderListRow[]) {
+  const po = list.filter((r) => r.listType === 'purchase_order').length;
+  const svc = list.filter((r) => r.listType !== 'purchase_order').length;
+  return { po, svc };
+}
+
+function sortAccountListRows(
+  profile: ServiceOrderProfile,
+  registered: RegisteredServiceRma[],
+  rows: ServiceOrderListRow[],
+): ServiceOrderListRow[] {
+  const mine = registered.filter((r) => matchesProfile(r, profile));
+  const regIds = new Set(mine.map((r) => r.localId));
+  return [...rows].sort((a, b) => {
+    const aReg = regIds.has(a.id);
+    const bReg = regIds.has(b.id);
+    if (aReg !== bReg) return aReg ? -1 : 1;
+    return a.requestDate < b.requestDate ? 1 : -1;
+  });
+}
+
+function mergeWithPersistedDemoSeed(
+  profile: ServiceOrderProfile,
+  registered: RegisteredServiceRma[],
+  baseRows: ServiceOrderListRow[],
+): ServiceOrderListRow[] {
+  const { po: basePo, svc: baseSvc } = countPurchaseAndService(baseRows);
+  const needSeed = basePo < 3 || baseSvc < 5 || baseRows.length === 0;
+
+  if (!needSeed) {
+    return sortAccountListRows(profile, registered, baseRows);
+  }
+
+  let fromDisk = loadPersistedDemoListRowsInternal();
+  if (!fromDisk || fromDisk.length === 0) {
+    fromDisk = buildDemoFallbackListRows();
+    savePersistedDemoListRowsInternal(fromDisk);
+  }
+
+  const byId = new Map<string, ServiceOrderListRow>();
+  for (const r of baseRows) byId.set(r.id, r);
+  for (const r of fromDisk) {
+    if (!byId.has(r.id)) byId.set(r.id, r);
+  }
+
+  let merged = [...byId.values()];
+  const { po, svc } = countPurchaseAndService(merged);
+  if (po < 3 || svc < 5) {
+    const fallback = buildDemoFallbackListRows();
+    savePersistedDemoListRowsInternal(fallback);
+    for (const r of fallback) {
+      if (!byId.has(r.id)) byId.set(r.id, r);
+    }
+    merged = [...byId.values()];
+  }
+
+  return sortAccountListRows(profile, registered, merged);
+}
+
+/**
+ * Rows for /account/requests: catalog + registered RMAs, with persisted demo minimums unless
+ * `VITE_DISABLE_DEMO_SEED` is set.
+ */
+export function buildAccountRequestsList(
+  profile: ServiceOrderProfile | null,
+  registered: RegisteredServiceRma[],
+): ServiceOrderListRow[] {
+  if (!profile) return [];
+  const base = buildServiceOrderList(profile, registered);
+  if (isDemoAccountListSeedDisabled()) return base;
+
+  let merged = mergeWithPersistedDemoSeed(profile, registered, base);
+  let { po, svc } = countPurchaseAndService(merged);
+  if (po < 3 || svc < 5) {
+    const snap = buildDemoFallbackListRows();
+    savePersistedDemoListRowsInternal(snap);
+    const byId = new Map<string, ServiceOrderListRow>();
+    for (const r of merged) byId.set(r.id, r);
+    for (const r of snap) {
+      if (!byId.has(r.id)) byId.set(r.id, r);
+    }
+    merged = sortAccountListRows(profile, registered, [...byId.values()]);
+    ({ po, svc } = countPurchaseAndService(merged));
+    if (po < 3 || svc < 5) {
+      merged = sortAccountListRows(profile, registered, snap);
+    }
+  }
+  return merged;
 }
 
 function matchesProfile(r: RegisteredServiceRma, p: ServiceOrderProfile): boolean {
@@ -150,8 +295,7 @@ export function buildServiceOrderList(
     }
   }
 
-  rows.sort((a, b) => (a.requestDate < b.requestDate ? 1 : -1));
-  return rows;
+  return sortAccountListRows(profile, registered, rows);
 }
 
 function rmaToRow(rma: Rma): ServiceOrderListRow {
