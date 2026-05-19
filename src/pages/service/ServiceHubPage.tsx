@@ -45,7 +45,9 @@ export function ServiceHubPage() {
       <div className={supportPanel}>
         <div className="px-4 py-3">
           <p className="text-[13px] font-semibold text-support-navy">Account</p>
-          <p className="mt-1 text-[13px] text-slate-600">Sign in to continue an existing request.</p>
+          <p className="mt-1 text-[13px] text-slate-600">
+            Sign in with your TickTalk Wireless account email to continue an existing request.
+          </p>
           <button
             type="button"
             className={cn(supportButtonSecondary, 'mt-3 w-full')}

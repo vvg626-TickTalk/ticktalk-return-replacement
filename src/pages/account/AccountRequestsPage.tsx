@@ -5,7 +5,10 @@ import { EmptyState } from '@/components/EmptyState';
 import { consumePreferServiceOrdersTab } from '@/features/serviceOrder/accountRequestsTabPreference';
 import { buildAccountRequestsList, isDemoAccountListSeedDisabled, type ServiceOrderListRow } from '@/features/serviceOrder/buildServiceOrderList';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
-import { SERVICE_ACCOUNT_FOOTNOTE } from '@/features/serviceOrder/serviceAuthCopy';
+import {
+  SERVICE_ACCOUNT_FOOTNOTE,
+  TICKTALK_WIRELESS_REQUESTS_LIST_SIGN_IN_PROMPT,
+} from '@/features/serviceOrder/serviceAuthCopy';
 import { supportButtonSecondary, supportModalTitle } from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
@@ -59,9 +62,7 @@ export function AccountRequestsPage() {
     return (
       <div className="mx-auto max-w-lg space-y-5 px-1">
         <h1 className={supportModalTitle}>Your Orders</h1>
-        <p className="text-[15px] leading-6 text-slate-600">
-          Sign in with your Service Order account email to see returns, replacements, and related requests.
-        </p>
+        <p className="text-[15px] leading-6 text-slate-600">{TICKTALK_WIRELESS_REQUESTS_LIST_SIGN_IN_PROMPT}</p>
         <p className="text-xs text-slate-500">{SERVICE_ACCOUNT_FOOTNOTE}</p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button type="button" className="w-full sm:w-auto" onClick={() => navigate('/service/login?return=/account/requests')}>

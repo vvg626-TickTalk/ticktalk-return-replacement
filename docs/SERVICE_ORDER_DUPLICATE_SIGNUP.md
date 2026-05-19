@@ -18,12 +18,12 @@ Append:
   accountAlreadyExists: {
     title: 'Account already exists',
     message:
-      'This email is already linked to a Service Order account. Please sign in to continue.',
+      'This email is already linked to a TickTalk Wireless account. Please sign in to continue.',
   },
   accountAlreadyExistsPhone: {
     title: 'Account already exists',
     message:
-      'This phone number is already linked to a Service Order account. Please sign in to continue.',
+      'This phone number is already linked to a TickTalk Wireless account. Please sign in to continue.',
   },
 ```
 
@@ -107,4 +107,4 @@ navigate(returnTo, { replace: true });
 | Sign up with existing email/phone | Modal “Account already exists”, pending stays in storage, route to Sign In |
 | Sign in | `signIn` → attach pending if any → ensure identity → `/account/requests` |
 
-Service Order account remains separate from TickTalk App; all data is mock `localStorage`.
+TickTalk Wireless (service) account remains separate from TickTalk App; all data is mock `localStorage`.

@@ -5,7 +5,11 @@ import { FormField } from '@/components/FormField';
 import { ServiceToast } from '@/components/ServiceToast';
 import { appendDemoContactMessage } from '@/features/serviceOrder/demoServiceLog';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
-import { SERVICE_ACCOUNT_FOOTNOTE } from '@/features/serviceOrder/serviceAuthCopy';
+import {
+  SERVICE_ACCOUNT_FOOTNOTE,
+  TICKTALK_WIRELESS_ACCOUNT_EMAIL_PLACEHOLDER,
+  TICKTALK_WIRELESS_ACCOUNT_TITLE,
+} from '@/features/serviceOrder/serviceAuthCopy';
 import { supportModalTitle } from '@/ui/supportTheme';
 import { fieldControl } from '@/ui/formControls';
 import { cn } from '@/utils/cn';
@@ -75,13 +79,14 @@ export function ServiceContactPage() {
             />
           </FormField>
           {showEmailField ? (
-            <FormField id="ct-email" label="Email">
+            <FormField id="ct-email" label={TICKTALK_WIRELESS_ACCOUNT_TITLE}>
               <input
                 id="ct-email"
                 className={fieldControl}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
+                placeholder={TICKTALK_WIRELESS_ACCOUNT_EMAIL_PLACEHOLDER}
               />
             </FormField>
           ) : (

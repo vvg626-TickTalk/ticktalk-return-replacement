@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/Button';
+import {
+  TICKTALK_WIRELESS_ACCOUNT_DESCRIPTION,
+  TICKTALK_WIRELESS_ACCOUNT_EMAIL_ONLY_NOTE,
+  TICKTALK_WIRELESS_ACCOUNT_EMAIL_PLACEHOLDER,
+  TICKTALK_WIRELESS_ACCOUNT_TITLE,
+} from '@/features/serviceOrder/serviceAuthCopy';
 import { fieldControl, fieldControlMono } from '@/ui/formControls';
 import { cn } from '@/utils/cn';
 
@@ -28,7 +34,7 @@ function outcomeMessage(outcome: Exclude<CarePlusForcedOutcome, 'auto'>): string
     case 'incorrect':
       return 'That code doesn’t match. Double-check and try again.';
     case 'mismatch':
-      return 'We couldn’t match this number with your TickTalk Care+ purchase. Try the email or phone you used when you bought Care+.';
+      return 'We couldn’t match this number with your TickTalk Care+ purchase. Try the email you used when you bought Care+.';
     case 'limit':
       return 'Daily verification limit reached. Try again tomorrow or contact support.';
     case 'unknown':
@@ -39,6 +45,10 @@ function outcomeMessage(outcome: Exclude<CarePlusForcedOutcome, 'auto'>): string
 }
 
 const shell = 'rounded-xl border border-slate-200/90 bg-slate-50/50 px-3 py-2.5';
+
+function validEmail(s: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
+}
 
 function isPhoneFilled(raw: string): boolean {
   const d = raw.replace(/\D/g, '');
@@ -66,8 +76,7 @@ export function CarePlusVerifyForm({
   const [forcedOutcome, setForcedOutcome] = useState<CarePlusForcedOutcome>('auto');
 
   const canSend = useMemo(() => {
-    const acct = parentAccount.trim();
-    return acct.length >= 3 && isPhoneFilled(devicePhone);
+    return validEmail(parentAccount) && isPhoneFilled(devicePhone);
   }, [devicePhone, parentAccount]);
 
   useEffect(() => {
@@ -161,15 +170,18 @@ export function CarePlusVerifyForm({
 
       <div className={shell}>
         <label htmlFor="care-parent" className="text-[11px] font-semibold text-slate-800">
-          TickTalk Wireless account
+          {TICKTALK_WIRELESS_ACCOUNT_TITLE}
         </label>
-        <p className="mt-0.5 text-[10px] leading-snug text-slate-500">Email or phone on your wireless account.</p>
+        <p className="mt-0.5 text-[10px] leading-snug text-slate-500">{TICKTALK_WIRELESS_ACCOUNT_DESCRIPTION}</p>
+        <p className="mt-1 text-[10px] leading-snug text-slate-500">{TICKTALK_WIRELESS_ACCOUNT_EMAIL_ONLY_NOTE}</p>
         <input
           id="care-parent"
           className={cn(fieldControl, 'mt-2 border-slate-200 bg-white')}
           value={parentAccount}
           onChange={(e) => setParentAccount(e.target.value)}
           autoComplete="email"
+          inputMode="email"
+          placeholder={TICKTALK_WIRELESS_ACCOUNT_EMAIL_PLACEHOLDER}
         />
       </div>
 
@@ -194,7 +206,7 @@ export function CarePlusVerifyForm({
               Didn’t receive a code?
             </button>
           ) : (
-            <span>Tap Send when phone and account look right.</span>
+            <span>Tap Send when phone and email look right.</span>
           )}
         </p>
       </div>
@@ -237,7 +249,7 @@ export function CarePlusVerifyForm({
               <option value="auto">Auto</option>
               <option value="expired">Expired</option>
               <option value="incorrect">Invalid code</option>
-              <option value="mismatch">Wrong phone/account</option>
+              <option value="mismatch">Wrong phone or email</option>
               <option value="limit">Daily limit</option>
               <option value="unknown">Unknown error</option>
             </select>

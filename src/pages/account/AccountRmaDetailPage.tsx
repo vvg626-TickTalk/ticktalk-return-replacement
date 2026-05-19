@@ -6,7 +6,11 @@ import { ServiceMessageModal } from '@/components/ServiceMessageModal';
 import { findRegisteredRma } from '@/features/serviceOrder/buildServiceOrderList';
 import { domesticDigitsToDisplay } from '@/features/replacement/phoneFormat';
 import { RMA_STATUS_CUSTOMER_LABEL } from '@/features/serviceOrder/rmaStatusLabels';
-import { SERVICE_ACCOUNT_FOOTNOTE, SERVICE_AUTH_COPY } from '@/features/serviceOrder/serviceAuthCopy';
+import {
+  SERVICE_ACCOUNT_FOOTNOTE,
+  SERVICE_AUTH_COPY,
+  TICKTALK_WIRELESS_REQUEST_DETAIL_SIGN_IN_PROMPT,
+} from '@/features/serviceOrder/serviceAuthCopy';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
 import type { RegisteredServiceRma } from '@/features/serviceOrder/types';
 import {
@@ -205,7 +209,7 @@ export function AccountRmaDetailPage() {
     return (
       <EmptyState
         title="Sign in required"
-        description="Service Order requests are available after you sign in."
+        description={TICKTALK_WIRELESS_REQUEST_DETAIL_SIGN_IN_PROMPT}
         action={{
           label: 'Sign in',
           to: `/service/login?return=${encodeURIComponent(`/account/rma/${rmaId}`)}`,

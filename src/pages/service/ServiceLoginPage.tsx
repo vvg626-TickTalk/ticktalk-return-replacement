@@ -14,6 +14,9 @@ import {
   SERVICE_ACCOUNT_FOOTNOTE,
   SERVICE_AUTH_COPY,
   SERVICE_SIGN_IN_INTRO,
+  SERVICE_SIGN_IN_NEW_USER_PROMPT,
+  TICKTALK_WIRELESS_ACCOUNT_EMAIL_PLACEHOLDER,
+  TICKTALK_WIRELESS_ACCOUNT_TITLE,
 } from '@/features/serviceOrder/serviceAuthCopy';
 import { supportModalTitle } from '@/ui/supportTheme';
 import { fieldControl, fieldControlMono } from '@/ui/formControls';
@@ -115,7 +118,7 @@ export function ServiceLoginPage() {
         <p className="mt-3 text-[15px] leading-6 text-slate-600">{SERVICE_SIGN_IN_INTRO}</p>
         <p className="mt-2 text-xs leading-snug text-slate-500">{SERVICE_ACCOUNT_FOOTNOTE}</p>
         <p className="mt-4 text-sm text-slate-600">
-          New to Service Orders?{' '}
+          {SERVICE_SIGN_IN_NEW_USER_PROMPT}{' '}
           <Link to="/service/signup" className="font-semibold text-support-navy underline decoration-support-navy/30">
             Sign up
           </Link>
@@ -123,13 +126,14 @@ export function ServiceLoginPage() {
         </p>
 
         <div className="mt-6 space-y-4">
-          <FormField id="li-email" label="Email address">
+          <FormField id="li-email" label={TICKTALK_WIRELESS_ACCOUNT_TITLE}>
             <input
               id="li-email"
               className={fieldControl}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
+              placeholder={TICKTALK_WIRELESS_ACCOUNT_EMAIL_PLACEHOLDER}
             />
           </FormField>
 

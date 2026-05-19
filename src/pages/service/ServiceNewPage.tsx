@@ -73,7 +73,7 @@ export function ServiceNewPage() {
 
       {!showPaths ? (
         <p className="text-center text-[12px] text-slate-500">
-          Already have an account? Use Continue, or go to{' '}
+          Already have a TickTalk Wireless account? Use Continue, or go to{' '}
           <button type="button" className="font-semibold text-support-navy underline" onClick={() => navigate('/service/login')}>
             Sign in
           </button>
