@@ -56,12 +56,30 @@ npm install
 npm run dev
 ```
 
-Then open the URL Vite prints (typically `http://localhost:5173`).
+The dev server is pinned to **port 5173** with **`strictPort: true`** (see `vite.config.ts`). It listens on **all interfaces** (`0.0.0.0`), so you can use:
+
+- **Local:** [http://localhost:5173/](http://localhost:5173/)
+- **LAN:** `http://<your-machine-ip>:5173/` (printed in the terminal)
+
+If Vite exits with “Port 5173 is in use,” free the port (see below) and run `npm run dev` again.
+
+**Check what is using port 5173 (macOS / Linux):**
+
+```bash
+lsof -nP -iTCP:5173 -sTCP:LISTEN
+```
+
+**Stop a leftover Vite process:**
+
+1. Note the **PID** from `lsof` (second column), then: `kill <PID>` (or `kill -9 <PID>` if it won’t exit).
+2. Or, if you know it’s Vite: `pkill -f "vite"` (broader; stops all matching Vite processes).
+
+**Production build preview** (`npm run preview`) also uses **5173** with `strictPort`, so don’t run `dev` and `preview` at the same time.
 
 Other commands:
 
 - **`npm run build`** — typecheck + production bundle to `dist/`
-- **`npm run preview`** — serve the production build locally
+- **`npm run preview`** — serve the production build locally (port **5173**)
 
 
 There is **no API configuration** (mock data only).
