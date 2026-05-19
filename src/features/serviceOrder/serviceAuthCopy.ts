@@ -24,7 +24,7 @@ export const SERVICE_AUTH_COPY = {
   verificationSuccess: {
     title: 'Verification Successful',
     message:
-      'Sign in with your email or phone number next time to manage your RMA requests.',
+      'Your account is ready. You can now track this request in My Requests.',
   },
   submissionFailed: {
     title: 'Submission Failed',

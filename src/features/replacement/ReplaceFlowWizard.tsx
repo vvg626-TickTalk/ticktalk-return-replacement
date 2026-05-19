@@ -224,6 +224,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
       phoneDisplay: contact.phoneDisplay,
       orderId: order.id,
       rmaCode,
+      customerId: order.customerId,
       pendingRma,
     });
     return pendingRma;

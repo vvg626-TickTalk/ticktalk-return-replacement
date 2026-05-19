@@ -1,20 +1,21 @@
-import type { Rma } from '@/types/models';
+import type { Order, Rma, TradeInRequest } from '@/types/models';
 import {
-  customers,
   getOrderById,
   getOrderLinesForOrder,
   getProductById,
-  getReplacementRequestByRmaId,
-  getReturnRequestByRmaId,
   listOrdersForCustomer,
   listRmasForCustomer,
+  getReplacementRequestByRmaId,
+  getReturnRequestByRmaId,
+  tradeInRequests,
 } from '@/mock-data';
 import { RMA_STATUS_CUSTOMER_LABEL } from '@/features/serviceOrder/rmaStatusLabels';
+import { customerIdForServiceProfile } from '@/features/serviceOrder/serviceCustomerLink';
 import type { RegisteredServiceRma, ServiceOrderProfile } from '@/features/serviceOrder/types';
 
 export type ServiceOrderListRow = {
   id: string;
-  listType: 'service_order' | 'refund' | 'replacement' | 'purchase_order';
+  listType: 'service_order' | 'refund' | 'replacement' | 'purchase_order' | 'trade_in';
   /** Card heading per PPT */
   typeLabel: string;
   reference: string;
@@ -33,7 +34,23 @@ const LIST_TYPE_LABEL: Record<ServiceOrderListRow['listType'], string> = {
   refund: 'Refund / Return Request',
   replacement: 'Replacement Request',
   purchase_order: 'Purchase Order',
+  trade_in: 'Trade-in Request',
 };
+
+const CHANNEL_SHORT: Record<Order['channel'], string> = {
+  myticktalk: 'myticktalk.com',
+  amazon: 'Amazon',
+  walmart: 'Walmart',
+  bestbuy: 'Best Buy',
+  tiktok: 'TikTok Shop',
+  other: 'Other',
+};
+
+function tradeInStatusLabel(state: TradeInRequest['state']): string {
+  if (state === 'quoted') return 'Requested';
+  if (state === 'applied') return 'Credit applied';
+  return 'Cancelled';
+}
 
 function issueDescriptionForMockRma(rma: Rma): string {
   const ret = getReturnRequestByRmaId(rma.id);
@@ -56,24 +73,12 @@ function matchesProfile(r: RegisteredServiceRma, p: ServiceOrderProfile): boolea
   const pd = (p.phoneDisplay ?? '').replace(/\D/g, '');
   const rd = (r.phone ?? '').replace(/\D/g, '');
   if (pd.length >= 10 && rd.length >= 10 && pd.slice(-10) === rd.slice(-10)) return true;
+  const linked = p.linkedCustomerId;
+  if (linked) {
+    const order = getOrderById(r.orderId);
+    if (order?.customerId && order.customerId === linked) return true;
+  }
   return false;
-}
-
-function customerIdForProfile(p: ServiceOrderProfile): string | null {
-  const pe = p.email?.trim().toLowerCase() ?? '';
-  if (pe) {
-    const hit = customers.find((c) => c.email?.toLowerCase() === pe);
-    if (hit) return hit.id;
-  }
-  const pd = (p.phoneDisplay ?? '').replace(/\D/g, '');
-  if (pd.length >= 10) {
-    const hit = customers.find((c) => {
-      const cd = (c.phoneE164 ?? '').replace(/\D/g, '');
-      return cd.length >= 10 && cd.slice(-10) === pd.slice(-10);
-    });
-    if (hit) return hit.id;
-  }
-  return null;
 }
 
 function thumbForOrder(orderId: string): string[] {
@@ -95,7 +100,13 @@ export function buildServiceOrderList(
 
   for (const r of mine) {
     const listType: ServiceOrderListRow['listType'] =
-      r.kind === 'replacement' ? 'replacement' : r.kind === 'return' ? 'refund' : 'service_order';
+      r.kind === 'replacement'
+        ? 'replacement'
+        : r.kind === 'return'
+          ? 'refund'
+          : r.kind === 'trade_in'
+            ? 'trade_in'
+            : 'service_order';
     rows.push({
       id: r.localId,
       listType,
@@ -110,7 +121,7 @@ export function buildServiceOrderList(
     });
   }
 
-  const custId = customerIdForProfile(profile);
+  const custId = profile.linkedCustomerId ?? customerIdForServiceProfile(profile);
   if (custId) {
     const demoRmas = listRmasForCustomer(custId);
     for (const rma of demoRmas) {
@@ -122,6 +133,12 @@ export function buildServiceOrderList(
       const po = orderToPurchaseRow(order.id);
       if (po && !rows.some((row) => row.id === po.id)) rows.push(po);
     }
+
+    for (const t of tradeInRequests) {
+      const o = t.orderId ? getOrderById(t.orderId) : undefined;
+      if (!o || o.customerId !== custId) continue;
+      rows.push(tradeInToRow(t, o.createdAt));
+    }
   }
 
   rows.sort((a, b) => (a.requestDate < b.requestDate ? 1 : -1));
@@ -130,7 +147,13 @@ export function buildServiceOrderList(
 
 function rmaToRow(rma: Rma): ServiceOrderListRow {
   const listType: ServiceOrderListRow['listType'] =
-    rma.kind === 'replacement' ? 'replacement' : rma.kind === 'return' ? 'refund' : 'service_order';
+    rma.kind === 'replacement'
+      ? 'replacement'
+      : rma.kind === 'return'
+        ? 'refund'
+        : rma.kind === 'trade_in'
+          ? 'trade_in'
+          : 'service_order';
   return {
     id: rma.id,
     listType,
@@ -145,9 +168,29 @@ function rmaToRow(rma: Rma): ServiceOrderListRow {
   };
 }
 
+function tradeInToRow(t: TradeInRequest, requestDateFallback: string): ServiceOrderListRow {
+  const order = t.orderId ? getOrderById(t.orderId) : undefined;
+  const ref = order ? `${order.externalOrderRef} · Trade-in` : t.id;
+  return {
+    id: `tradein-${t.id}`,
+    listType: 'trade_in',
+    typeLabel: LIST_TYPE_LABEL.trade_in,
+    reference: ref,
+    statusLabel: tradeInStatusLabel(t.state),
+    requestDate: order?.createdAt ?? requestDateFallback,
+    detailPath: order ? `/service/order/${order.id}` : '/trade-in/preview',
+    swatches: thumbForOrder(t.orderId ?? ''),
+    issueDescription: t.imei
+      ? `${t.brand} trade-in — IMEI ${t.imei} (demo).`
+      : `${t.brand} trade-in (demo).`,
+    attachmentSlotCount: 0,
+  };
+}
+
 function orderToPurchaseRow(orderId: string): ServiceOrderListRow | null {
   const order = getOrderById(orderId);
   if (!order) return null;
+  const ch = CHANNEL_SHORT[order.channel];
   return {
     id: `purchase-${order.id}`,
     listType: 'purchase_order',
@@ -157,7 +200,7 @@ function orderToPurchaseRow(orderId: string): ServiceOrderListRow | null {
     requestDate: order.createdAt,
     detailPath: `/service/order/${order.id}`,
     swatches: thumbForOrder(order.id),
-    issueDescription: 'Original purchase — see order for line items (demo).',
+    issueDescription: `Original purchase · ${ch}${order.shippingRegion === 'international' ? ' · International' : ''} (demo).`,
     attachmentSlotCount: 0,
   };
 }

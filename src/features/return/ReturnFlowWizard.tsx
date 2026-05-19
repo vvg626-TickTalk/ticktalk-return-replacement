@@ -314,6 +314,7 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
       phoneDisplay: contact.phoneDisplay,
       orderId: order.id,
       rmaCode: code,
+      customerId: order.customerId,
       pendingRma,
     });
     setRmaCode(code);

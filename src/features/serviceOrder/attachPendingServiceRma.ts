@@ -2,10 +2,13 @@ import {
   clearPendingServiceOrder,
   readPendingServiceOrder,
 } from '@/features/serviceOrder/pendingServiceOrderStorage';
-import type { RegisteredServiceRma, ServiceOrderProfile } from '@/features/serviceOrder/types';
 import { sanitizePhoneForStorage } from '@/features/serviceOrder/phoneSanitize';
+import type { RegisteredServiceRma, ServiceOrderProfile } from '@/features/serviceOrder/types';
 
-/** Merge signed-in profile into stored contact fields so list filters match. */
+/**
+ * After Sign In / Sign Up: attach the flow snapshot as a registered RMA and clear pending storage.
+ * Merges the signed-in profile into contact fields so list filters and detail stay consistent.
+ */
 export function attachPendingRmaIfAny(
   profile: ServiceOrderProfile,
   addRegisteredRma: (r: RegisteredServiceRma) => void,

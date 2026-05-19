@@ -5,14 +5,16 @@ import { FormField } from '@/components/FormField';
 import { ServiceAuthModeTabs } from '@/components/ServiceAuthModeTabs';
 import { ServiceMessageModal } from '@/components/ServiceMessageModal';
 import { ServiceToast } from '@/components/ServiceToast';
-import { clearPendingServiceOrder, readPendingServiceOrder } from '@/features/serviceOrder/pendingServiceOrderStorage';
+import { attachPendingRmaIfAny } from '@/features/serviceOrder/attachPendingServiceRma';
+import { readPendingServiceOrder } from '@/features/serviceOrder/pendingServiceOrderStorage';
 import {
   isServiceAccountIdentifierTaken,
   registerServiceAccountIdentifiers,
 } from '@/features/serviceOrder/serviceAccountRegistry';
+import { resolveLinkedCustomerId } from '@/features/serviceOrder/serviceCustomerLink';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
 import { SERVICE_AUTH_COPY, SERVICE_ACCOUNT_FOOTNOTE } from '@/features/serviceOrder/serviceAuthCopy';
-import { sanitizePhoneForStorage } from '@/features/serviceOrder/phoneSanitize';
+import type { ServiceOrderProfile } from '@/features/serviceOrder/types';
 import { supportModalTitle } from '@/ui/supportTheme';
 import { fieldControl, fieldControlMono } from '@/ui/formControls';
 import { cn } from '@/utils/cn';
@@ -150,41 +152,27 @@ export function ServiceSignupPage() {
     }
 
     const pre = readPendingServiceOrder();
-    const localId = `reg-${Date.now()}`;
 
     const displayName = pre?.name?.trim() || prefillName.trim() || 'Customer';
-    const resolvedEmail = mode === 'email' ? email.trim() : (pre?.email?.trim() || pre?.pendingRma.email || '');
+    const resolvedEmail = mode === 'email' ? email.trim() : (pre?.email?.trim() || pre?.pendingRma?.email || '');
     const resolvedPhoneDisplay =
       mode === 'phone'
         ? `${countryCode} ${nationalDigits(phoneNational)}`
         : (pre?.phoneDisplay?.trim() ?? null);
 
-    if (pre?.pendingRma) {
-      addRegisteredRma({
-        ...pre.pendingRma,
-        localId,
-        contactName: displayName,
-        email: mode === 'email' ? email.trim() : pre.pendingRma.email,
-        phone:
-          mode === 'phone'
-            ? sanitizePhoneForStorage(`${countryCode} ${nationalDigits(phoneNational)}`)
-            : pre.pendingRma.phone,
-      });
-    }
-
-    signIn({
+    const baseProfile: ServiceOrderProfile = {
       name: displayName,
       email: resolvedEmail || null,
       phoneDisplay: resolvedPhoneDisplay,
-    });
+    };
+    const profile: ServiceOrderProfile = {
+      ...baseProfile,
+      linkedCustomerId: resolveLinkedCustomerId(baseProfile, pre),
+    };
 
-    registerServiceAccountIdentifiers({
-      name: displayName,
-      email: resolvedEmail || null,
-      phoneDisplay: resolvedPhoneDisplay,
-    });
-
-    clearPendingServiceOrder();
+    signIn(profile);
+    registerServiceAccountIdentifiers(profile);
+    attachPendingRmaIfAny(profile, addRegisteredRma);
     setModal('verificationSuccess');
   };
 

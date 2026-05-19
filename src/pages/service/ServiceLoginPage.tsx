@@ -6,8 +6,11 @@ import { ServiceAuthModeTabs } from '@/components/ServiceAuthModeTabs';
 import { ServiceMessageModal } from '@/components/ServiceMessageModal';
 import { ServiceToast } from '@/components/ServiceToast';
 import { attachPendingRmaIfAny } from '@/features/serviceOrder/attachPendingServiceRma';
+import { readPendingServiceOrder } from '@/features/serviceOrder/pendingServiceOrderStorage';
 import { registerServiceAccountIdentifiers } from '@/features/serviceOrder/serviceAccountRegistry';
+import { resolveLinkedCustomerId } from '@/features/serviceOrder/serviceCustomerLink';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
+import type { ServiceOrderProfile } from '@/features/serviceOrder/types';
 import {
   SERVICE_ACCOUNT_FOOTNOTE,
   SERVICE_AUTH_COPY,
@@ -92,10 +95,15 @@ export function ServiceLoginPage() {
       return;
     }
 
-    const profile = {
+    const pre = readPendingServiceOrder();
+    const baseProfile: ServiceOrderProfile = {
       name: 'Customer',
       email: mode === 'email' ? email.trim() : null,
       phoneDisplay: mode === 'phone' ? `${countryCode} ${nationalDigits(phoneNational)}` : null,
+    };
+    const profile: ServiceOrderProfile = {
+      ...baseProfile,
+      linkedCustomerId: resolveLinkedCustomerId(baseProfile, pre),
     };
     signIn(profile);
     registerServiceAccountIdentifiers(profile);

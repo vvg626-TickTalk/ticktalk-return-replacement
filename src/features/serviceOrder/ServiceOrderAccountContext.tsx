@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { RegisteredServiceRma, ServiceOrderProfile } from '@/features/serviceOrder/types';
+import { customerIdForServiceProfile } from '@/features/serviceOrder/serviceCustomerLink';
 
 const LS_PROFILE = 'tt_service_order_profile_v1';
 const LS_RMAS = 'tt_service_registered_rmas_v1';
@@ -28,7 +29,12 @@ function loadProfile(): ServiceOrderProfile | null {
   try {
     const raw = localStorage.getItem(LS_PROFILE);
     if (!raw) return null;
-    return JSON.parse(raw) as ServiceOrderProfile;
+    const p = JSON.parse(raw) as ServiceOrderProfile;
+    if (p && (p.linkedCustomerId === undefined || p.linkedCustomerId === null)) {
+      const inferred = customerIdForServiceProfile(p);
+      return { ...p, linkedCustomerId: inferred };
+    }
+    return p;
   } catch {
     return null;
   }
