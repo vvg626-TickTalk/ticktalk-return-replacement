@@ -1,13 +1,16 @@
 import { useState } from 'react';
+import amazonLogo from '@/assets/logos/amazon-logo.svg';
+import bestbuyLogo from '@/assets/logos/bestbuy-logo.svg';
+import ticktalkLogo from '@/assets/logos/ticktalk-logo.svg';
+import walmartLogo from '@/assets/logos/walmart-logo.svg';
 import type { ChannelId } from '@/pages/service/orderLookupFormat';
 import { cn } from '@/utils/cn';
 
-const CHANNEL_LOGO_SRC: Record<ChannelId, string> = {
-  myticktalk: '/channel-logos/ticktalk.svg',
-  amazon: '/channel-logos/amazon.svg',
-  walmart: '/channel-logos/walmart.svg',
-  bestbuy: '/channel-logos/bestbuy.svg',
-  tiktok: '/channel-logos/tiktok.svg',
+const CHANNEL_LOGO_SRC: Partial<Record<ChannelId, string>> = {
+  myticktalk: ticktalkLogo,
+  amazon: amazonLogo,
+  walmart: walmartLogo,
+  bestbuy: bestbuyLogo,
 };
 
 /** Matches SR-visible branding; image uses the same phrase for consistency. */
@@ -49,10 +52,10 @@ export function OrderLookupChannelLogo({ channelId, label, className }: OrderLoo
       <img
         src={src}
         alt={alt}
-        width={200}
+        width={220}
         height={36}
         decoding="async"
-        className="mx-auto h-6 w-auto max-w-[min(100%,280px)] object-contain object-center sm:h-8 md:h-9"
+        className="mx-auto h-[26px] w-auto max-w-[min(100%,280px)] object-contain object-center sm:h-8"
         onError={() => setFailed(true)}
       />
     </div>
