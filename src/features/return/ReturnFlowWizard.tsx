@@ -41,7 +41,11 @@ import {
   type PerLineReturnReason,
   type ReturnReasonId,
 } from '@/features/return/returnReasons';
+import { buildReturnPendingRma } from '@/features/serviceOrder/buildReturnPendingRma';
+import { clearPendingServiceOrder, savePendingServiceOrder } from '@/features/serviceOrder/pendingServiceOrderStorage';
+import { sanitizePhoneForStorage } from '@/features/serviceOrder/phoneSanitize';
 import type { ServiceFlowLocationState } from '@/features/serviceOrder/serviceFlowLocation';
+import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
 import { getCustomerById, getOrderLinesForOrder, getProductById } from '@/mock-data';
 import { fieldControl, fieldControlMono, fieldTextarea } from '@/ui/formControls';
 import { supportPanel, supportSectionHead, supportToolbarBtn } from '@/ui/supportPortalLayout';
@@ -96,6 +100,7 @@ function emptyContact(): ContactForm {
 export function ReturnFlowWizard({ order }: { order: Order }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated, profile, addRegisteredRma } = useServiceOrderAccount();
   const prefillReturn = (location.state as ServiceFlowLocationState | null)?.prefillReturn;
   const prefillAppliedRef = useRef(false);
 
@@ -120,6 +125,7 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
   });
 
   const [rmaCode, setRmaCode] = useState<string | null>(null);
+  const [uploadCount, setUploadCount] = useState(0);
 
   const [addOpen, setAddOpen] = useState(false);
   const [removePrimaryId, setRemovePrimaryId] = useState<string | null>(null);
@@ -264,7 +270,53 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
   };
 
   const submitReturn = () => {
-    setRmaCode(generateMockRma());
+    const code = generateMockRma();
+    const pendingRma = buildReturnPendingRma({
+      order,
+      lines,
+      expandedLineIds,
+      reasonByLineId,
+      contact: {
+        name: contact.name.trim(),
+        email: contact.email.trim(),
+        phoneDisplay: contact.phoneDisplay,
+        address1: contact.address1,
+        address2: contact.address2,
+        city: contact.city,
+        region: contact.region,
+        postal: contact.postal,
+        country: contact.country,
+      },
+      addressMode,
+      rmaCode: code,
+      refundEstimateCents: refundPreview.afterFee,
+      returnShippingFeeCents: refundPreview.fee,
+      uploadedImageCount: uploadCount,
+    });
+
+    if (isAuthenticated && profile) {
+      const localId = `reg-${Date.now()}`;
+      addRegisteredRma({
+        ...pendingRma,
+        localId,
+        email: profile.email?.trim() || pendingRma.email,
+        phone: profile.phoneDisplay ? sanitizePhoneForStorage(profile.phoneDisplay) : pendingRma.phone,
+        contactName: profile.name?.trim() || pendingRma.contactName,
+      });
+      clearPendingServiceOrder();
+      navigate('/account/requests', { replace: true });
+      return;
+    }
+
+    savePendingServiceOrder({
+      name: contact.name.trim(),
+      email: contact.email.trim(),
+      phoneDisplay: contact.phoneDisplay,
+      orderId: order.id,
+      rmaCode: code,
+      pendingRma,
+    });
+    setRmaCode(code);
     setStep('confirmation');
   };
 
@@ -443,8 +495,10 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
             <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.07em] text-slate-500">Your order</p>
             <p className="text-base font-semibold text-brand-ink">What are you returning?</p>
             <p className="text-sm leading-snug text-slate-600">
-              Add a qualifying item. Watches need a <span className="font-medium text-slate-800">15-digit IMEI</span>. If
-              it came with a free gift, we’ll include that gift automatically—you’ll ship them together.
+              Add a qualifying item. Watches need a <span className="font-medium text-slate-800">15-digit IMEI</span>.
+            </p>
+            <p className="mt-2 text-sm font-medium leading-snug text-amber-950/90">
+              Free gifts must be returned with the main product.
             </p>
           </div>
 
@@ -641,9 +695,27 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
           <div className="space-y-1">
             <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.07em] text-slate-500">Shipping</p>
             <p className="text-base font-semibold text-brand-ink">Where should we send return instructions?</p>
-            <p className="text-sm leading-snug text-slate-600">Phone formatting is for display only in this demo.</p>
+            <p className="text-sm leading-snug text-slate-600">
+              Phone numbers are saved without spaces or symbols for this demo submission.
+            </p>
           </div>
           {contactFields}
+          <div className="mt-5">
+            <FormField
+              id="ret-photos"
+              label="Photos (optional)"
+              hint="Images of damage, packing, or labels (demo stores count only)."
+            >
+              <input
+                id="ret-photos"
+                type="file"
+                accept="image/*"
+                multiple
+                className={fieldControl}
+                onChange={(e) => setUploadCount(e.target.files?.length ?? 0)}
+              />
+            </FormField>
+          </div>
         </Card>
       ) : null}
 
@@ -762,8 +834,7 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
             <div className="border-t border-amber-200 bg-amber-50/60 px-2 py-2">
               <p className="text-xs font-semibold text-amber-950">Free gift</p>
               <p className="mt-0.5 text-[11px] leading-snug text-amber-950/90">
-                Pack your promo gift in the same box as the qualifying item. If the gift is missing, it may delay or reduce
-                your refund.
+                Free gifts must be returned with the main product.
               </p>
             </div>
           ) : null}
@@ -793,12 +864,16 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
             {contact.phoneDisplay}
           </div>
 
-          <div className={supportSectionHead}>Policy</div>
-          <div className="px-2 py-2">
-            <ul className="space-y-1 text-[11px] leading-snug text-slate-600">
+          <div className="border-t border-slate-200 bg-slate-50/50 px-2 py-3">
+            <h3 className="text-sm font-bold uppercase tracking-wide text-support-navy">Return policy</h3>
+            <p className="mt-2 text-[11px] leading-snug text-slate-700">
+              <span className="font-semibold text-slate-800">International customers:</span> duties, carriers, and refund
+              timing may differ—we’ll confirm details in email before you ship.
+            </p>
+            <ul className="mt-2 space-y-1.5 text-[11px] leading-snug text-slate-600">
               <li>We review every return for eligibility before approving a label.</li>
               <li>Refunds post to your original payment method after inspection.</li>
-              <li>International returns may follow different rules—confirm in follow-up email.</li>
+              <li>Keep records of your tracking number until the refund posts.</li>
             </ul>
           </div>
         </div>
@@ -833,12 +908,20 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
               <span>Your refund is issued after we receive and inspect the package—timing depends on your bank.</span>
             </li>
           </ul>
-          <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
             <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={() => navigate(`/service/order/${order.id}`)}>
               Back to order
             </Button>
-            <Button type="button" className="w-full sm:w-auto" onClick={() => navigate('/account/requests')}>
-              View requests
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full sm:w-auto"
+              onClick={() => navigate('/service/login?return=/account/requests')}
+            >
+              Sign in
+            </Button>
+            <Button type="button" className="w-full sm:w-auto" onClick={() => navigate('/service/signup')}>
+              Continue
             </Button>
           </div>
         </Card>
@@ -888,6 +971,18 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
           >
             Back
           </Button>
+          <AddItemsToolbarSlot disabled={addItemsDisabled}>
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full min-h-12 sm:w-auto"
+              disabled={addItemsDisabled}
+              title={addItemsDisabled ? NO_ADDITIONAL_ELIGIBLE_ITEMS : undefined}
+              onClick={startAdd}
+            >
+              {ADD_ITEMS_CTA}
+            </Button>
+          </AddItemsToolbarSlot>
           <Button
             type="button"
             className="w-full min-h-12 sm:flex-1 sm:min-w-[10rem]"

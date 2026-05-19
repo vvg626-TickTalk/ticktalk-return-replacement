@@ -1,10 +1,12 @@
 import type { Rma } from '@/types/models';
 import {
+  customers,
   getOrderById,
   getOrderLinesForOrder,
   getProductById,
   getReplacementRequestByRmaId,
   getReturnRequestByRmaId,
+  listOrdersForCustomer,
   listRmasForCustomer,
 } from '@/mock-data';
 import { RMA_STATUS_CUSTOMER_LABEL } from '@/features/serviceOrder/rmaStatusLabels';
@@ -26,12 +28,10 @@ export type ServiceOrderListRow = {
   attachmentSlotCount: number;
 };
 
-const DEMO_MATCH_EMAIL = 'ada@example.com';
-
 const LIST_TYPE_LABEL: Record<ServiceOrderListRow['listType'], string> = {
   service_order: 'Service Order',
-  refund: 'Refund',
-  replacement: 'Replacement',
+  refund: 'Refund / Return Request',
+  replacement: 'Replacement Request',
   purchase_order: 'Purchase Order',
 };
 
@@ -57,6 +57,23 @@ function matchesProfile(r: RegisteredServiceRma, p: ServiceOrderProfile): boolea
   const rd = (r.phone ?? '').replace(/\D/g, '');
   if (pd.length >= 10 && rd.length >= 10 && pd.slice(-10) === rd.slice(-10)) return true;
   return false;
+}
+
+function customerIdForProfile(p: ServiceOrderProfile): string | null {
+  const pe = p.email?.trim().toLowerCase() ?? '';
+  if (pe) {
+    const hit = customers.find((c) => c.email?.toLowerCase() === pe);
+    if (hit) return hit.id;
+  }
+  const pd = (p.phoneDisplay ?? '').replace(/\D/g, '');
+  if (pd.length >= 10) {
+    const hit = customers.find((c) => {
+      const cd = (c.phoneE164 ?? '').replace(/\D/g, '');
+      return cd.length >= 10 && cd.slice(-10) === pd.slice(-10);
+    });
+    if (hit) return hit.id;
+  }
+  return null;
 }
 
 function thumbForOrder(orderId: string): string[] {
@@ -89,19 +106,22 @@ export function buildServiceOrderList(
       detailPath: `/account/rma/${r.localId}`,
       swatches: r.productSwatches.length ? r.productSwatches : ['bg-slate-200'],
       issueDescription: r.issueDescription,
-      attachmentSlotCount: 3,
+      attachmentSlotCount: r.uploadedImageCount ?? 0,
     });
   }
 
-  if (profile.email?.toLowerCase() === DEMO_MATCH_EMAIL) {
-    const demoRmas = listRmasForCustomer('cust-ada');
+  const custId = customerIdForProfile(profile);
+  if (custId) {
+    const demoRmas = listRmasForCustomer(custId);
     for (const rma of demoRmas) {
       if (mine.some((r) => r.code === rma.code)) continue;
       rows.push(rmaToRow(rma));
     }
 
-    const po = orderToPurchaseRow('ord-101');
-    if (po) rows.push(po);
+    for (const order of listOrdersForCustomer(custId)) {
+      const po = orderToPurchaseRow(order.id);
+      if (po && !rows.some((row) => row.id === po.id)) rows.push(po);
+    }
   }
 
   rows.sort((a, b) => (a.requestDate < b.requestDate ? 1 : -1));

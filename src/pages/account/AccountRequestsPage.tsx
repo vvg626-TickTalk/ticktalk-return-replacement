@@ -46,7 +46,7 @@ export function AccountRequestsPage() {
           <p className="mt-1 text-sm text-slate-600">{SERVICE_ACCOUNT_FOOTNOTE}</p>
         </div>
         <Link
-          to="/service/new"
+          to="/service/order-lookup"
           className={cn(supportButtonSecondary, 'inline-flex w-full justify-center sm:w-auto')}
         >
           + Add New
@@ -130,7 +130,7 @@ export function AccountRequestsPage() {
                     className="w-full min-w-[10rem] lg:w-auto"
                     onClick={() => navigate(row.detailPath)}
                   >
-                    View details
+                    View Details
                   </Button>
                   <p className="text-center text-xs text-slate-500 lg:text-right">Status and next steps</p>
                 </div>

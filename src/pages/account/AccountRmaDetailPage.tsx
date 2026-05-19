@@ -4,6 +4,7 @@ import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
 import { ServiceMessageModal } from '@/components/ServiceMessageModal';
 import { findRegisteredRma } from '@/features/serviceOrder/buildServiceOrderList';
+import { domesticDigitsToDisplay } from '@/features/replacement/phoneFormat';
 import { RMA_STATUS_CUSTOMER_LABEL } from '@/features/serviceOrder/rmaStatusLabels';
 import { SERVICE_ACCOUNT_FOOTNOTE, SERVICE_AUTH_COPY } from '@/features/serviceOrder/serviceAuthCopy';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
@@ -24,6 +25,7 @@ import { cn } from '@/utils/cn';
 type DetailModel = {
   detailKey: string;
   code: string;
+  kind: RmaKind;
   typeLabel: string;
   status: RmaStatus;
   statusLabel: string;
@@ -33,10 +35,15 @@ type DetailModel = {
   contactName: string;
   email: string;
   phone: string;
+  phoneDisplay: string;
   addressMultiline: string;
   productLines: string[];
   swatches: string[];
   issueDescription: string;
+  returnReasonText: string | null;
+  refundEstimateCents: number | null;
+  returnShippingFeeCents: number | null;
+  uploadedImageCount: number;
   isRegistered: boolean;
   orderId?: string;
 };
@@ -45,14 +52,28 @@ const CUSTOMER_NOTICE =
   'The returned item does not match the return request. Please check your email for details.';
 
 function kindLabel(kind: RmaKind): string {
-  if (kind === 'replacement') return 'Replacement';
-  if (kind === 'return') return 'Refund';
+  if (kind === 'replacement') return 'Replacement Request';
+  if (kind === 'return') return 'Refund / Return Request';
   return 'Service Order';
 }
 
-function canCancelStatus(status: RmaStatus): boolean {
-  if (status === 'cancelled' || status === 'refunded' || status === 'shipped') return false;
-  return true;
+function formatUsd(cents: number): string {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
+}
+
+function formatPhoneForDisplay(raw: string): string {
+  const d = raw.replace(/\D/g, '');
+  if (d.length === 10) return domesticDigitsToDisplay(d);
+  if (d.length === 11 && d.startsWith('1')) return domesticDigitsToDisplay(d.slice(1));
+  return raw;
+}
+
+function canCancelReplacementRegistered(status: RmaStatus): boolean {
+  return status !== 'cancelled' && status !== 'shipped' && status !== 'refunded';
+}
+
+function canCancelReturnRegistered(status: RmaStatus): boolean {
+  return status !== 'cancelled' && status !== 'refunded';
 }
 
 function mockIssueDescription(rma: Rma): string {
@@ -86,9 +107,12 @@ function buildMockDetail(rma: Rma): DetailModel {
     ? [`Shipping postal: ${order.shippingPostal}`, `Order: ${order.externalOrderRef}`].join('\n')
     : '—';
 
+  const ret = getReturnRequestByRmaId(rma.id);
+
   return {
     detailKey: rma.id,
     code: rma.code,
+    kind: rma.kind,
     typeLabel: kindLabel(rma.kind),
     status: rma.status,
     statusLabel: RMA_STATUS_CUSTOMER_LABEL[rma.status],
@@ -98,19 +122,26 @@ function buildMockDetail(rma: Rma): DetailModel {
     contactName: customer?.name ?? '—',
     email: customer?.email ?? '—',
     phone: customer?.phoneE164 ?? '—',
+    phoneDisplay: customer?.phoneE164 ? formatPhoneForDisplay(customer.phoneE164) : '—',
     addressMultiline,
     productLines,
     swatches,
     issueDescription: mockIssueDescription(rma),
+    returnReasonText: rma.kind === 'return' ? mockIssueDescription(rma) : null,
+    refundEstimateCents: ret?.refundTotalCents ?? null,
+    returnShippingFeeCents: null,
+    uploadedImageCount: 3,
     isRegistered: false,
     orderId: rma.orderId,
   };
 }
 
 function buildRegisteredDetail(r: RegisteredServiceRma): DetailModel {
+  const phoneDisp = formatPhoneForDisplay(r.phone);
   return {
     detailKey: r.localId,
     code: r.code,
+    kind: r.kind,
     typeLabel: kindLabel(r.kind),
     status: r.status,
     statusLabel: r.customerStatusLabel,
@@ -120,10 +151,15 @@ function buildRegisteredDetail(r: RegisteredServiceRma): DetailModel {
     contactName: r.contactName,
     email: r.email,
     phone: r.phone,
+    phoneDisplay: phoneDisp,
     addressMultiline: r.addressMultiline,
     productLines: r.productLines,
     swatches: r.productSwatches,
     issueDescription: r.issueDescription,
+    returnReasonText: r.returnReasonSummary ?? (r.kind === 'return' ? r.issueDescription : null),
+    refundEstimateCents: r.refundEstimateCents ?? null,
+    returnShippingFeeCents: r.returnShippingFeeCents ?? null,
+    uploadedImageCount: r.uploadedImageCount ?? 0,
     isRegistered: true,
     orderId: r.orderId,
   };
@@ -166,7 +202,15 @@ export function AccountRmaDetailPage() {
     );
   }
 
-  const showCancel = detail.isRegistered && canCancelStatus(detail.status);
+  const showCancel =
+    detail.isRegistered &&
+    (detail.kind === 'return'
+      ? canCancelReturnRegistered(detail.status)
+      : detail.kind === 'replacement'
+        ? canCancelReplacementRegistered(detail.status)
+        : false);
+
+  const cancelLabel = detail.kind === 'return' ? 'Cancel Return' : 'Cancel RMA';
 
   const onCancelYes = () => {
     if (!detail.isRegistered) return;
@@ -179,7 +223,10 @@ export function AccountRmaDetailPage() {
     setCancelOpen(false);
   };
 
-  const contactQuery = new URLSearchParams({ subject: `RMA ${detail.code}`, rma: detail.code });
+  const contactQuery = new URLSearchParams({
+    rma: detail.code,
+    subject: `RMA ${detail.code}`,
+  });
   const contactHref = `/service/contact?${contactQuery.toString()}`;
 
   return (
@@ -198,7 +245,7 @@ export function AccountRmaDetailPage() {
           <Button type="button" className="w-full sm:w-auto" onClick={() => navigate(contactHref)}>
             Contact Us
           </Button>
-          </div>
+        </div>
       </div>
 
       {detail.needsCustomerNotice ? (
@@ -232,7 +279,7 @@ export function AccountRmaDetailPage() {
               <br />
               {detail.email}
               <br />
-              {detail.phone}
+              {detail.phoneDisplay}
             </p>
           </section>
           <section>
@@ -245,7 +292,10 @@ export function AccountRmaDetailPage() {
           <h2 className="text-sm font-semibold text-support-navy">Products</h2>
           <div className="mt-3 flex flex-wrap gap-3">
             {detail.productLines.map((label, i) => (
-              <div key={`${label}-${i}`} className="flex items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100">
+              <div
+                key={`${label}-${i}`}
+                className="flex items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100"
+              >
                 <div className={cn('h-10 w-10 rounded-xl ring-1 ring-slate-200/80', detail.swatches[i] ?? 'bg-slate-200')} />
                 <span className="text-sm text-slate-800">{label}</span>
               </div>
@@ -253,34 +303,67 @@ export function AccountRmaDetailPage() {
           </div>
         </section>
 
-        <section className="mt-6">
-          <h2 className="text-sm font-semibold text-support-navy">Issue description</h2>
-          <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-700">{detail.issueDescription}</p>
-        </section>
+        {detail.kind === 'replacement' ? (
+          <section className="mt-6">
+            <h2 className="text-sm font-semibold text-support-navy">Issue description</h2>
+            <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-700">{detail.issueDescription}</p>
+          </section>
+        ) : detail.kind === 'return' ? (
+          <section className="mt-6">
+            <h2 className="text-sm font-semibold text-support-navy">Return reason</h2>
+            <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-700">
+              {detail.returnReasonText ?? detail.issueDescription}
+            </p>
+          </section>
+        ) : (
+          <section className="mt-6">
+            <h2 className="text-sm font-semibold text-support-navy">Details</h2>
+            <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-700">{detail.issueDescription}</p>
+          </section>
+        )}
+
+        {detail.kind === 'return' && detail.refundEstimateCents !== null ? (
+          <section className="mt-6">
+            <h2 className="text-sm font-semibold text-support-navy">Refund estimate (demo)</h2>
+            <p className="mt-2 text-sm text-slate-700">
+              Estimated refund after inspection:{' '}
+              <span className="font-semibold text-slate-900">{formatUsd(detail.refundEstimateCents)}</span>
+              {detail.returnShippingFeeCents != null && detail.returnShippingFeeCents > 0 ? (
+                <>
+                  {' '}
+                  (return shipping fee of {formatUsd(detail.returnShippingFeeCents)} was deducted in the request preview).
+                </>
+              ) : null}
+            </p>
+            <p className="mt-1 text-xs text-slate-600">Final amount is confirmed after we receive and inspect your package.</p>
+          </section>
+        ) : null}
 
         <section className="mt-6">
           <h2 className="text-sm font-semibold text-support-navy">Uploaded images</h2>
-          <p className="mt-2 text-xs text-slate-500">Demo-only placeholders for attachments.</p>
-          <div className="mt-3 flex gap-2">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                title="Placeholder"
-                className="flex h-16 w-16 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-center text-[10px] font-medium text-slate-400"
-              >
-                {i + 1}
-              </div>
-            ))}
-          </div>
+          {detail.uploadedImageCount > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {Array.from({ length: detail.uploadedImageCount }, (_, i) => (
+                <div
+                  key={i}
+                  className="flex h-16 w-16 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-center text-[10px] font-medium text-slate-400"
+                >
+                  {i + 1}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-slate-500">No images were attached to this request.</p>
+          )}
         </section>
 
         {showCancel ? (
           <div className="mt-8 flex flex-col gap-2 border-t border-slate-100 pt-6 sm:flex-row">
             <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={() => setCancelOpen(true)}>
-              Cancel RMA
+              {cancelLabel}
             </Button>
           </div>
-      ) : null}
+        ) : null}
       </div>
 
       <ServiceMessageModal

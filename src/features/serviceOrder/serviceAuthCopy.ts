@@ -34,6 +34,13 @@ export const SERVICE_AUTH_COPY = {
     title: 'Reminder',
     message: 'Do you want to cancel this RMA request?',
   },
+  accountExists: {
+    title: 'Account already exists',
+    emailMessage:
+      'This email is already linked to a Service Order account. Please sign in to continue.',
+    phoneMessage:
+      'This phone number is already linked to a Service Order account. Please sign in to continue.',
+  },
 } as const;
 
 export const SERVICE_ACCOUNT_FOOTNOTE =

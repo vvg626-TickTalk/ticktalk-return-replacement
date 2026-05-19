@@ -5,9 +5,14 @@ import { FormField } from '@/components/FormField';
 import { ServiceAuthModeTabs } from '@/components/ServiceAuthModeTabs';
 import { ServiceMessageModal } from '@/components/ServiceMessageModal';
 import { ServiceToast } from '@/components/ServiceToast';
-import { clearPostReplacementPrefill, readPostReplacementPrefill } from '@/features/serviceOrder/postReplacementPrefill';
+import { clearPendingServiceOrder, readPendingServiceOrder } from '@/features/serviceOrder/pendingServiceOrderStorage';
+import {
+  isServiceAccountIdentifierTaken,
+  registerServiceAccountIdentifiers,
+} from '@/features/serviceOrder/serviceAccountRegistry';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
 import { SERVICE_AUTH_COPY, SERVICE_ACCOUNT_FOOTNOTE } from '@/features/serviceOrder/serviceAuthCopy';
+import { sanitizePhoneForStorage } from '@/features/serviceOrder/phoneSanitize';
 import { supportModalTitle } from '@/ui/supportTheme';
 import { fieldControl, fieldControlMono } from '@/ui/formControls';
 import { cn } from '@/utils/cn';
@@ -66,7 +71,6 @@ export function ServiceSignupPage() {
   const [code, setCode] = useState('');
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [toastOpen, setToastOpen] = useState(false);
-  const [phase, setPhase] = useState<'form' | 'success'>('form');
   const [prefillName, setPrefillName] = useState('');
 
   const [modal, setModal] = useState<
@@ -77,13 +81,15 @@ export function ServiceSignupPage() {
     | 'noEmail'
     | 'noPhone'
     | 'submissionFailed'
+    | 'verificationSuccess'
+    | 'accountExists'
   >(null);
 
   const emailRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const pre = readPostReplacementPrefill();
+    const pre = readPendingServiceOrder();
     if (pre) {
       setEmail(pre.email ?? '');
       const d = nationalDigits(pre.phoneDisplay);
@@ -112,6 +118,8 @@ export function ServiceSignupPage() {
     setToastOpen(true);
   };
 
+  const phoneDigitsCombined = `${nationalDigits(countryCode)}${nationalDigits(phoneNational)}`;
+
   const onSubmit = () => {
     const outcome = mockVerifyOutcome(code.trim());
     if (outcome === 'expired') {
@@ -132,22 +140,52 @@ export function ServiceSignupPage() {
       return;
     }
 
-    const pre = readPostReplacementPrefill();
+    const emailTaken =
+      mode === 'email' && isServiceAccountIdentifierTaken({ mode: 'email', email: email.trim() });
+    const phoneTaken =
+      mode === 'phone' && isServiceAccountIdentifierTaken({ mode: 'phone', phoneDigits: phoneDigitsCombined });
+    if (emailTaken || phoneTaken) {
+      setModal('accountExists');
+      return;
+    }
+
+    const pre = readPendingServiceOrder();
     const localId = `reg-${Date.now()}`;
 
+    const displayName = pre?.name?.trim() || prefillName.trim() || 'Customer';
+    const resolvedEmail = mode === 'email' ? email.trim() : (pre?.email?.trim() || pre?.pendingRma.email || '');
+    const resolvedPhoneDisplay =
+      mode === 'phone'
+        ? `${countryCode} ${nationalDigits(phoneNational)}`
+        : (pre?.phoneDisplay?.trim() ?? null);
+
     if (pre?.pendingRma) {
-      addRegisteredRma({ ...pre.pendingRma, localId });
+      addRegisteredRma({
+        ...pre.pendingRma,
+        localId,
+        contactName: displayName,
+        email: mode === 'email' ? email.trim() : pre.pendingRma.email,
+        phone:
+          mode === 'phone'
+            ? sanitizePhoneForStorage(`${countryCode} ${nationalDigits(phoneNational)}`)
+            : pre.pendingRma.phone,
+      });
     }
 
     signIn({
-      name: pre?.name ?? (prefillName || 'Customer'),
-      email: mode === 'email' ? email.trim() : pre?.email?.trim() ?? null,
-      phoneDisplay:
-        mode === 'phone' ? `${countryCode} ${nationalDigits(phoneNational)}` : pre?.phoneDisplay ?? null,
+      name: displayName,
+      email: resolvedEmail || null,
+      phoneDisplay: resolvedPhoneDisplay,
     });
 
-    if (pre) clearPostReplacementPrefill();
-    setPhase('success');
+    registerServiceAccountIdentifiers({
+      name: displayName,
+      email: resolvedEmail || null,
+      phoneDisplay: resolvedPhoneDisplay,
+    });
+
+    clearPendingServiceOrder();
+    setModal('verificationSuccess');
   };
 
   const mmss = `${String(Math.floor(secondsLeft / 60)).padStart(2, '0')}:${String(secondsLeft % 60).padStart(2, '0')}`;
@@ -162,123 +200,111 @@ export function ServiceSignupPage() {
       />
 
       <div className="rounded-[28px] border border-slate-200/80 bg-white px-6 py-8 shadow-xl shadow-slate-900/8 sm:px-10">
-        {phase === 'success' ? (
-          <div className="space-y-4 text-center">
-            <h1 className={supportModalTitle}>{SERVICE_AUTH_COPY.verificationSuccess.title}</h1>
-            <p className="text-[15px] leading-6 text-slate-600">{SERVICE_AUTH_COPY.verificationSuccess.message}</p>
-            <Button type="button" className="mt-4 w-full" onClick={() => navigate('/account/requests')}>
-              View my requests
-            </Button>
-            <Button type="button" variant="secondary" className="w-full" onClick={() => navigate('/service')}>
-              Service home
-            </Button>
-          </div>
-        ) : (
-          <>
-            <h1 className={supportModalTitle}>Sign Up</h1>
-            <p className="mt-3 text-[15px] leading-6 text-slate-600">
-              To protect your information, please sign up with your email or phone number the first time you use our return
-              or replacement service. If you already have an account, you can{' '}
-              <Link to="/service/login?return=/account/requests" className="font-semibold text-support-navy underline decoration-support-navy/30">
-                Sign in
-              </Link>
-              .
-            </p>
-            <p className="mt-2 text-xs leading-snug text-slate-500">{SERVICE_ACCOUNT_FOOTNOTE}</p>
+        <h1 className={supportModalTitle}>Sign Up</h1>
+        <p className="mt-3 text-[15px] leading-6 text-slate-600">
+          To protect your information, please sign up with your email or phone number the first time you use our return or
+          replacement service. If you already have an account, you can{' '}
+          <Link
+            to="/service/login?return=/account/requests"
+            className="font-semibold text-support-navy underline decoration-support-navy/30"
+          >
+            Sign in
+          </Link>
+          .
+        </p>
+        <p className="mt-2 text-xs leading-snug text-slate-500">{SERVICE_ACCOUNT_FOOTNOTE}</p>
 
-            <div className="mt-6">
-              <ServiceAuthModeTabs mode={mode} onModeChange={setMode} />
-            </div>
+        <div className="mt-6">
+          <ServiceAuthModeTabs mode={mode} onModeChange={setMode} />
+        </div>
 
-            <div className="mt-6 space-y-4">
-              {mode === 'email' ? (
-                <FormField id="su-email" label="Email address">
-                  <div className="flex items-center gap-2">
-                    <input
-                      ref={emailRef}
-                      id="su-email"
-                      className={cn(fieldControl, 'flex-1')}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      autoComplete="email"
-                    />
-                    <EditAffix inputRef={emailRef} label="email" />
-                  </div>
-                </FormField>
-              ) : (
-                <>
-                  <FormField id="su-cc" label="Country code">
-                    <select
-                      id="su-cc"
-                      className={fieldControl}
-                      value={countryCode}
-                      onChange={(e) => setCountryCode(e.target.value)}
-                    >
-                      {COUNTRY_OPTIONS.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                  </FormField>
-                  <FormField id="su-phone" label="Phone number">
-                    <div className="flex items-center gap-2">
-                      <input
-                        ref={phoneRef}
-                        id="su-phone"
-                        className={cn(fieldControl, 'flex-1')}
-                        value={phoneNational}
-                        onChange={(e) => setPhoneNational(e.target.value)}
-                        inputMode="tel"
-                        autoComplete="tel"
-                      />
-                      <EditAffix inputRef={phoneRef} label="phone" />
-                    </div>
-                  </FormField>
-                </>
-              )}
-
-              <FormField id="su-code" label="Verification code">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="mt-6 space-y-4">
+          {mode === 'email' ? (
+            <FormField id="su-email" label="Email address">
+              <div className="flex items-center gap-2">
+                <input
+                  ref={emailRef}
+                  id="su-email"
+                  className={cn(fieldControl, 'flex-1')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                />
+                <EditAffix inputRef={emailRef} label="email" />
+              </div>
+            </FormField>
+          ) : (
+            <>
+              <FormField id="su-cc" label="Country code">
+                <select
+                  id="su-cc"
+                  className={fieldControl}
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                >
+                  {COUNTRY_OPTIONS.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+              <FormField id="su-phone" label="Phone number">
+                <div className="flex items-center gap-2">
                   <input
-                    id="su-code"
-                    className={cn(fieldControlMono, 'sm:flex-1')}
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    inputMode="numeric"
-                    placeholder="6-digit code"
-                    autoComplete="one-time-code"
+                    ref={phoneRef}
+                    id="su-phone"
+                    className={cn(fieldControl, 'flex-1')}
+                    value={phoneNational}
+                    onChange={(e) => setPhoneNational(e.target.value)}
+                    inputMode="tel"
+                    autoComplete="tel"
                   />
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="w-full shrink-0 sm:w-auto"
-                    disabled={!canSend || secondsLeft > 0}
-                    onClick={send}
-                  >
-                    {secondsLeft > 0 ? `Resend (${mmss})` : 'Send Verification Code'}
-                  </Button>
+                  <EditAffix inputRef={phoneRef} label="phone" />
                 </div>
               </FormField>
-              <button
-                type="button"
-                className="-mt-1 text-left text-sm font-medium text-support-navy hover:underline"
-                onClick={() => setModal(mode === 'email' ? 'noEmail' : 'noPhone')}
-              >
-                Didn’t receive a code?
-              </button>
-            </div>
+            </>
+          )}
 
-            <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={() => navigate(-1)}>
-                Cancel
-              </Button>
-              <Button type="button" className="w-full sm:w-auto" disabled={code.trim().length < 6} onClick={onSubmit}>
-                Submit
+          <FormField id="su-code" label="Verification code">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <input
+                id="su-code"
+                className={cn(fieldControlMono, 'sm:flex-1')}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                inputMode="numeric"
+                placeholder="6-digit code"
+                autoComplete="one-time-code"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full shrink-0 sm:w-auto"
+                disabled={!canSend || secondsLeft > 0}
+                onClick={send}
+              >
+                {secondsLeft > 0 ? `Resend (${mmss})` : 'Send Verification Code'}
               </Button>
             </div>
-          </>
-        )}
+          </FormField>
+          <button
+            type="button"
+            className="-mt-1 text-left text-sm font-medium text-support-navy hover:underline"
+            onClick={() => setModal(mode === 'email' ? 'noEmail' : 'noPhone')}
+          >
+            Didn’t receive a code?
+          </button>
+        </div>
+
+        <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={() => navigate(-1)}>
+            Cancel
+          </Button>
+          <Button type="button" className="w-full sm:w-auto" disabled={code.trim().length < 6} onClick={onSubmit}>
+            Submit
+          </Button>
+        </div>
       </div>
 
       <ServiceMessageModal
@@ -327,6 +353,37 @@ export function ServiceSignupPage() {
           onClick: () => {
             setModal(null);
             navigate('/service');
+          },
+        }}
+      />
+      <ServiceMessageModal
+        open={modal === 'verificationSuccess'}
+        title={SERVICE_AUTH_COPY.verificationSuccess.title}
+        message={SERVICE_AUTH_COPY.verificationSuccess.message}
+        onClose={() => {
+          setModal(null);
+          navigate('/account/requests');
+        }}
+        primaryAction={{
+          label: 'OK',
+          onClick: () => {
+            setModal(null);
+            navigate('/account/requests');
+          },
+        }}
+      />
+      <ServiceMessageModal
+        open={modal === 'accountExists'}
+        title={SERVICE_AUTH_COPY.accountExists.title}
+        message={
+          mode === 'email' ? SERVICE_AUTH_COPY.accountExists.emailMessage : SERVICE_AUTH_COPY.accountExists.phoneMessage
+        }
+        onClose={() => setModal(null)}
+        primaryAction={{
+          label: 'Sign In',
+          onClick: () => {
+            setModal(null);
+            navigate('/service/login?return=/account/requests');
           },
         }}
       />

@@ -54,6 +54,10 @@ export function listRmasForCustomer(customerId: string) {
   return rmas.filter((r) => r.customerId === customerId);
 }
 
+export function listOrdersForCustomer(customerId: string) {
+  return orders.filter((o) => o.customerId === customerId);
+}
+
 export function getReturnRequestByRmaId(rmaId: string) {
   return returnRequests.find((r) => r.rmaId === rmaId);
 }

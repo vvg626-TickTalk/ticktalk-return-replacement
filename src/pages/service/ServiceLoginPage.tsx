@@ -5,6 +5,8 @@ import { FormField } from '@/components/FormField';
 import { ServiceAuthModeTabs } from '@/components/ServiceAuthModeTabs';
 import { ServiceMessageModal } from '@/components/ServiceMessageModal';
 import { ServiceToast } from '@/components/ServiceToast';
+import { attachPendingRmaIfAny } from '@/features/serviceOrder/attachPendingServiceRma';
+import { registerServiceAccountIdentifiers } from '@/features/serviceOrder/serviceAccountRegistry';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
 import {
   SERVICE_ACCOUNT_FOOTNOTE,
@@ -39,7 +41,7 @@ export function ServiceLoginPage() {
   const returnToRaw = searchParams.get('return') ?? '/account/requests';
   const returnTo =
     returnToRaw.startsWith('/') && !returnToRaw.startsWith('//') ? returnToRaw : '/account/requests';
-  const { signIn } = useServiceOrderAccount();
+  const { signIn, addRegisteredRma } = useServiceOrderAccount();
 
   const [mode, setMode] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
@@ -90,11 +92,14 @@ export function ServiceLoginPage() {
       return;
     }
 
-    signIn({
+    const profile = {
       name: 'Customer',
       email: mode === 'email' ? email.trim() : null,
       phoneDisplay: mode === 'phone' ? `${countryCode} ${nationalDigits(phoneNational)}` : null,
-    });
+    };
+    signIn(profile);
+    registerServiceAccountIdentifiers(profile);
+    attachPendingRmaIfAny(profile, addRegisteredRma);
     navigate(returnTo, { replace: true });
   };
 

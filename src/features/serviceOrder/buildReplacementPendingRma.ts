@@ -4,6 +4,7 @@ import { getReplacementReason } from '@/features/replacement/replacementReasons'
 import type { PerItemReasonForm } from '@/features/replacement/reasonValidation';
 import { normalizePerItemReasonForm } from '@/features/replacement/reasonValidation';
 import type { RegisteredServiceRma } from '@/features/serviceOrder/types';
+import { sanitizePhoneForStorage } from '@/features/serviceOrder/phoneSanitize';
 import { RMA_STATUS_CUSTOMER_LABEL } from '@/features/serviceOrder/rmaStatusLabels';
 
 export type ContactSnapshot = {
@@ -64,8 +65,8 @@ export function buildReplacementPendingRma(params: {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     contactName: contact.name,
-    email: contact.email,
-    phone: contact.phoneDisplay,
+    email: contact.email.trim(),
+    phone: sanitizePhoneForStorage(contact.phoneDisplay),
     addressMultiline: addrParts.join('\n'),
     issueDescription: issueParts.join('\n'),
     productLines,

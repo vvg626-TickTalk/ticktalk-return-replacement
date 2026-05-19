@@ -26,9 +26,14 @@ export type RegisteredServiceRma = {
   issueDescription: string;
   productLines: string[];
   productSwatches: string[];
+  /** Return flow — readable summary for detail page */
+  returnReasonSummary?: string;
+  refundEstimateCents?: number;
+  returnShippingFeeCents?: number;
+  uploadedImageCount?: number;
 };
 
-/** SessionStorage payload after replacement confirmation — consumed by signup prefill. */
+/** localStorage payload after return/replacement confirmation — consumed by signup prefill. */
 export type PostReplacementPrefill = {
   name: string;
   email: string;
