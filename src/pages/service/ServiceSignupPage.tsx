@@ -1,32 +1,29 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/Button';
 import { FormField } from '@/components/FormField';
-import { ServiceAuthModeTabs } from '@/components/ServiceAuthModeTabs';
 import { ServiceMessageModal } from '@/components/ServiceMessageModal';
 import { ServiceToast } from '@/components/ServiceToast';
 import { attachPendingRmaIfAny } from '@/features/serviceOrder/attachPendingServiceRma';
 import { readPendingServiceOrder } from '@/features/serviceOrder/pendingServiceOrderStorage';
 import {
-  isServiceAccountIdentifierTaken,
+  isServiceAccountEmailRegistered,
   registerServiceAccountIdentifiers,
 } from '@/features/serviceOrder/serviceAccountRegistry';
 import { resolveLinkedCustomerId } from '@/features/serviceOrder/serviceCustomerLink';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
-import { SERVICE_AUTH_COPY, SERVICE_ACCOUNT_FOOTNOTE } from '@/features/serviceOrder/serviceAuthCopy';
+import {
+  SERVICE_AUTH_COPY,
+  SERVICE_ACCOUNT_FOOTNOTE,
+  SERVICE_SIGN_UP_INTRO,
+} from '@/features/serviceOrder/serviceAuthCopy';
 import type { ServiceOrderProfile } from '@/features/serviceOrder/types';
 import { supportModalTitle } from '@/ui/supportTheme';
 import { fieldControl, fieldControlMono } from '@/ui/formControls';
 import { cn } from '@/utils/cn';
 
-const COUNTRY_OPTIONS = ['+1', '+44', '+86'];
-
 function validEmail(s: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
-}
-
-function nationalDigits(s: string) {
-  return s.replace(/\D/g, '');
 }
 
 function mockVerifyOutcome(code: string): 'ok' | 'expired' | 'invalid' | 'unknown' {
@@ -37,67 +34,25 @@ function mockVerifyOutcome(code: string): 'ok' | 'expired' | 'invalid' | 'unknow
   return 'invalid';
 }
 
-function EditAffix({
-  inputRef,
-  label,
-}: {
-  inputRef: React.RefObject<HTMLInputElement | null>;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={`Edit ${label}`}
-      className="text-support-navy/70 hover:text-support-navy"
-      onClick={() => {
-        const el = inputRef.current;
-        if (!el) return;
-        el.focus();
-        const L = el.value.length;
-        const pos = Math.max(0, L - 1);
-        requestAnimationFrame(() => el.setSelectionRange(pos, pos));
-      }}
-    >
-      <span className="text-lg leading-none">✎</span>
-    </button>
-  );
-}
-
 export function ServiceSignupPage() {
   const navigate = useNavigate();
   const { signIn, addRegisteredRma } = useServiceOrderAccount();
-  const [mode, setMode] = useState<'email' | 'phone'>('email');
+
   const [email, setEmail] = useState('');
-  const [phoneNational, setPhoneNational] = useState('');
-  const [countryCode, setCountryCode] = useState('+1');
   const [code, setCode] = useState('');
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [toastOpen, setToastOpen] = useState(false);
   const [prefillName, setPrefillName] = useState('');
 
   const [modal, setModal] = useState<
-    | null
-    | 'expired'
-    | 'unknown'
-    | 'invalid'
-    | 'noEmail'
-    | 'noPhone'
-    | 'submissionFailed'
-    | 'verificationSuccess'
-    | 'accountExists'
+    null | 'expired' | 'unknown' | 'invalid' | 'noEmail' | 'submissionFailed' | 'accountExists'
   >(null);
-
-  const emailRef = useRef<HTMLInputElement>(null);
-  const phoneRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const pre = readPendingServiceOrder();
     if (pre) {
-      setEmail(pre.email ?? '');
-      const d = nationalDigits(pre.phoneDisplay);
-      const us = d.length === 11 && d.startsWith('1') ? d.slice(1) : d.length === 10 ? d : d.slice(-10);
-      setPhoneNational(us);
-      setPrefillName(pre.name ?? '');
+      if (pre.email?.trim()) setEmail(pre.email.trim());
+      if (pre.name?.trim()) setPrefillName(pre.name.trim());
     }
   }, []);
 
@@ -107,20 +62,13 @@ export function ServiceSignupPage() {
     return () => window.clearInterval(t);
   }, [secondsLeft]);
 
-  const phoneOk = useMemo(() => {
-    const d = nationalDigits(phoneNational);
-    return countryCode === '+1' ? d.length >= 10 : d.length >= 8;
-  }, [countryCode, phoneNational]);
-
-  const canSend = mode === 'email' ? validEmail(email) : phoneOk;
+  const canSend = validEmail(email);
 
   const send = () => {
     if (!canSend || secondsLeft > 0) return;
     setSecondsLeft(300);
     setToastOpen(true);
   };
-
-  const phoneDigitsCombined = `${nationalDigits(countryCode)}${nationalDigits(phoneNational)}`;
 
   const onSubmit = () => {
     const outcome = mockVerifyOutcome(code.trim());
@@ -142,28 +90,17 @@ export function ServiceSignupPage() {
       return;
     }
 
-    const emailTaken =
-      mode === 'email' && isServiceAccountIdentifierTaken({ mode: 'email', email: email.trim() });
-    const phoneTaken =
-      mode === 'phone' && isServiceAccountIdentifierTaken({ mode: 'phone', phoneDigits: phoneDigitsCombined });
-    if (emailTaken || phoneTaken) {
+    if (isServiceAccountEmailRegistered(email.trim())) {
       setModal('accountExists');
       return;
     }
 
     const pre = readPendingServiceOrder();
-
     const displayName = pre?.name?.trim() || prefillName.trim() || 'Customer';
-    const resolvedEmail = mode === 'email' ? email.trim() : (pre?.email?.trim() || pre?.pendingRma?.email || '');
-    const resolvedPhoneDisplay =
-      mode === 'phone'
-        ? `${countryCode} ${nationalDigits(phoneNational)}`
-        : (pre?.phoneDisplay?.trim() ?? null);
-
+    const resolvedEmail = email.trim();
     const baseProfile: ServiceOrderProfile = {
       name: displayName,
-      email: resolvedEmail || null,
-      phoneDisplay: resolvedPhoneDisplay,
+      email: resolvedEmail,
     };
     const profile: ServiceOrderProfile = {
       ...baseProfile,
@@ -173,10 +110,12 @@ export function ServiceSignupPage() {
     signIn(profile);
     registerServiceAccountIdentifiers(profile);
     attachPendingRmaIfAny(profile, addRegisteredRma);
-    setModal('verificationSuccess');
+    navigate('/account/requests', { replace: true });
   };
 
   const mmss = `${String(Math.floor(secondsLeft / 60)).padStart(2, '0')}:${String(secondsLeft % 60).padStart(2, '0')}`;
+
+  const loginHref = `/service/login?return=${encodeURIComponent('/account/requests')}&email=${encodeURIComponent(email.trim())}`;
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-lg flex-col justify-center px-4 py-8">
@@ -189,70 +128,25 @@ export function ServiceSignupPage() {
 
       <div className="rounded-[28px] border border-slate-200/80 bg-white px-6 py-8 shadow-xl shadow-slate-900/8 sm:px-10">
         <h1 className={supportModalTitle}>Sign Up</h1>
-        <p className="mt-3 text-[15px] leading-6 text-slate-600">
-          To protect your information, please sign up with your email or phone number the first time you use our return or
-          replacement service. If you already have an account, you can{' '}
-          <Link
-            to="/service/login?return=/account/requests"
-            className="font-semibold text-support-navy underline decoration-support-navy/30"
-          >
+        <p className="mt-3 text-[15px] leading-6 text-slate-600">{SERVICE_SIGN_UP_INTRO}</p>
+        <p className="mt-2 text-xs leading-snug text-slate-500">{SERVICE_ACCOUNT_FOOTNOTE}</p>
+        <p className="mt-4 text-sm text-slate-600">
+          Already have a Service Order account?{' '}
+          <Link to="/service/login?return=/account/requests" className="font-semibold text-support-navy underline decoration-support-navy/30">
             Sign in
           </Link>
-          .
         </p>
-        <p className="mt-2 text-xs leading-snug text-slate-500">{SERVICE_ACCOUNT_FOOTNOTE}</p>
-
-        <div className="mt-6">
-          <ServiceAuthModeTabs mode={mode} onModeChange={setMode} />
-        </div>
 
         <div className="mt-6 space-y-4">
-          {mode === 'email' ? (
-            <FormField id="su-email" label="Email address">
-              <div className="flex items-center gap-2">
-                <input
-                  ref={emailRef}
-                  id="su-email"
-                  className={cn(fieldControl, 'flex-1')}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                />
-                <EditAffix inputRef={emailRef} label="email" />
-              </div>
-            </FormField>
-          ) : (
-            <>
-              <FormField id="su-cc" label="Country code">
-                <select
-                  id="su-cc"
-                  className={fieldControl}
-                  value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                >
-                  {COUNTRY_OPTIONS.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-              <FormField id="su-phone" label="Phone number">
-                <div className="flex items-center gap-2">
-                  <input
-                    ref={phoneRef}
-                    id="su-phone"
-                    className={cn(fieldControl, 'flex-1')}
-                    value={phoneNational}
-                    onChange={(e) => setPhoneNational(e.target.value)}
-                    inputMode="tel"
-                    autoComplete="tel"
-                  />
-                  <EditAffix inputRef={phoneRef} label="phone" />
-                </div>
-              </FormField>
-            </>
-          )}
+          <FormField id="su-email" label="Email address">
+            <input
+              id="su-email"
+              className={fieldControl}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </FormField>
 
           <FormField id="su-code" label="Verification code">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -279,9 +173,9 @@ export function ServiceSignupPage() {
           <button
             type="button"
             className="-mt-1 text-left text-sm font-medium text-support-navy hover:underline"
-            onClick={() => setModal(mode === 'email' ? 'noEmail' : 'noPhone')}
+            onClick={() => setModal('noEmail')}
           >
-            Didn’t receive a code?
+            Didn’t receive the verification code?
           </button>
         </div>
 
@@ -324,13 +218,6 @@ export function ServiceSignupPage() {
         primaryAction={{ label: 'OK', onClick: () => setModal(null) }}
       />
       <ServiceMessageModal
-        open={modal === 'noPhone'}
-        title={SERVICE_AUTH_COPY.noCodePhone.title}
-        message={SERVICE_AUTH_COPY.noCodePhone.message}
-        onClose={() => setModal(null)}
-        primaryAction={{ label: 'OK', onClick: () => setModal(null) }}
-      />
-      <ServiceMessageModal
         open={modal === 'submissionFailed'}
         title={SERVICE_AUTH_COPY.submissionFailed.title}
         message={SERVICE_AUTH_COPY.submissionFailed.message}
@@ -345,33 +232,15 @@ export function ServiceSignupPage() {
         }}
       />
       <ServiceMessageModal
-        open={modal === 'verificationSuccess'}
-        title={SERVICE_AUTH_COPY.verificationSuccess.title}
-        message={SERVICE_AUTH_COPY.verificationSuccess.message}
-        onClose={() => {
-          setModal(null);
-          navigate('/account/requests');
-        }}
-        primaryAction={{
-          label: 'OK',
-          onClick: () => {
-            setModal(null);
-            navigate('/account/requests');
-          },
-        }}
-      />
-      <ServiceMessageModal
         open={modal === 'accountExists'}
         title={SERVICE_AUTH_COPY.accountExists.title}
-        message={
-          mode === 'email' ? SERVICE_AUTH_COPY.accountExists.emailMessage : SERVICE_AUTH_COPY.accountExists.phoneMessage
-        }
+        message={SERVICE_AUTH_COPY.accountExists.message}
         onClose={() => setModal(null)}
         primaryAction={{
           label: 'Sign In',
           onClick: () => {
             setModal(null);
-            navigate('/service/login?return=/account/requests');
+            navigate(loginHref);
           },
         }}
       />

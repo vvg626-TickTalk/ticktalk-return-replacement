@@ -43,7 +43,6 @@ import {
 } from '@/features/return/returnReasons';
 import { buildReturnPendingRma } from '@/features/serviceOrder/buildReturnPendingRma';
 import { clearPendingServiceOrder, savePendingServiceOrder } from '@/features/serviceOrder/pendingServiceOrderStorage';
-import { sanitizePhoneForStorage } from '@/features/serviceOrder/phoneSanitize';
 import type { ServiceFlowLocationState } from '@/features/serviceOrder/serviceFlowLocation';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
 import { getCustomerById, getOrderLinesForOrder, getProductById } from '@/mock-data';
@@ -299,9 +298,9 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
       addRegisteredRma({
         ...pendingRma,
         localId,
-        email: profile.email?.trim() || pendingRma.email,
-        phone: profile.phoneDisplay ? sanitizePhoneForStorage(profile.phoneDisplay) : pendingRma.phone,
-        contactName: profile.name?.trim() || pendingRma.contactName,
+        email: profile.email.trim() || pendingRma.email,
+        phone: pendingRma.phone,
+        contactName: profile.name.trim() || pendingRma.contactName,
       });
       clearPendingServiceOrder();
       navigate('/account/requests', { replace: true });

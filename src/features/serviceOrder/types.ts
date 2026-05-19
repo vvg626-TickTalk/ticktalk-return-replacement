@@ -1,10 +1,9 @@
 import type { RmaKind, RmaStatus } from '@/types/models';
 
-/** Logged-in profile for Service Order portal (not TickTalk App). */
+/** Logged-in profile for Service Order portal (not TickTalk App). Email is the sole login identifier. */
 export type ServiceOrderProfile = {
   name: string;
-  email: string | null;
-  phoneDisplay: string | null;
+  email: string;
   /**
    * Demo: customer id from the purchase tied to the pending/service flow (ord-101 → cust-ada).
    * Used to show purchase history even when the signup email differs from the mock catalog.
@@ -26,6 +25,7 @@ export type RegisteredServiceRma = {
   updatedAt: string;
   contactName: string;
   email: string;
+  /** Shipping / contact phone from the service request form (not used for account login). */
   phone: string;
   addressMultiline: string;
   issueDescription: string;

@@ -32,8 +32,7 @@ export function ServiceContactPage() {
   }, [defaultSubject]);
 
   const accountEmail = profile?.email ?? '';
-  const accountPhone = profile?.phoneDisplay ?? '';
-  const signedInLine = accountEmail || accountPhone;
+  const signedInLine = accountEmail;
   const showEmailField = !accountEmail;
 
   const onSend = () => {

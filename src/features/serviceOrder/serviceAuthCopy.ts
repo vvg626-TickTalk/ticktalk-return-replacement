@@ -15,16 +15,11 @@ export const SERVICE_AUTH_COPY = {
   noCodeEmail: {
     title: 'Didn’t receive the verification code?',
     message:
-      'If you did not receive the verification code email, please check your spam or junk folder.',
-  },
-  noCodePhone: {
-    title: 'Didn’t receive the verification code?',
-    message: 'Please double-check your country code and mobile number, then try again.',
+      'Please check your spam or junk folder. If you still don’t see it, request a new code.',
   },
   verificationSuccess: {
     title: 'Verification Successful',
-    message:
-      'Your account is ready. You can now track this request in My Requests.',
+    message: 'Your account is ready. You can now track this request in My Requests.',
   },
   submissionFailed: {
     title: 'Submission Failed',
@@ -36,10 +31,8 @@ export const SERVICE_AUTH_COPY = {
   },
   accountExists: {
     title: 'Account already exists',
-    emailMessage:
+    message:
       'This email is already linked to a Service Order account. Please sign in to continue.',
-    phoneMessage:
-      'This phone number is already linked to a Service Order account. Please sign in to continue.',
   },
 } as const;
 
@@ -47,4 +40,7 @@ export const SERVICE_ACCOUNT_FOOTNOTE =
   'This account is separate from your TickTalk App account.';
 
 export const SERVICE_SIGN_IN_INTRO =
-  'For your security, please sign in with the phone number or email you used last time.';
+  'Sign in with the email you used for your Service Order account.';
+
+export const SERVICE_SIGN_UP_INTRO =
+  'Create a Service Order account to track your return, replacement, or trade-in request. We’ll use this email to send updates, labels, and support messages.';

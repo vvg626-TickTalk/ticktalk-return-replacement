@@ -29,12 +29,22 @@ function loadProfile(): ServiceOrderProfile | null {
   try {
     const raw = localStorage.getItem(LS_PROFILE);
     if (!raw) return null;
-    const p = JSON.parse(raw) as ServiceOrderProfile;
-    if (p && (p.linkedCustomerId === undefined || p.linkedCustomerId === null)) {
-      const inferred = customerIdForServiceProfile(p);
-      return { ...p, linkedCustomerId: inferred };
+    const parsed = JSON.parse(raw) as Partial<ServiceOrderProfile> & { phoneDisplay?: string | null };
+    const email = typeof parsed.email === 'string' ? parsed.email.trim() : '';
+    if (!email) return null;
+    const name = typeof parsed.name === 'string' && parsed.name.trim() ? parsed.name.trim() : 'Customer';
+    const base: ServiceOrderProfile = {
+      name,
+      email,
+      linkedCustomerId:
+        parsed.linkedCustomerId === undefined || parsed.linkedCustomerId === null
+          ? undefined
+          : parsed.linkedCustomerId,
+    };
+    if (base.linkedCustomerId === undefined || base.linkedCustomerId === null) {
+      return { ...base, linkedCustomerId: customerIdForServiceProfile(base) };
     }
-    return p;
+    return base;
   } catch {
     return null;
   }

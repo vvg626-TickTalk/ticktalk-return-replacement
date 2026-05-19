@@ -67,12 +67,9 @@ function issueDescriptionForMockRma(rma: Rma): string {
 }
 
 function matchesProfile(r: RegisteredServiceRma, p: ServiceOrderProfile): boolean {
-  const pe = p.email?.trim().toLowerCase() ?? '';
+  const pe = p.email.trim().toLowerCase();
   const re = r.email?.trim().toLowerCase() ?? '';
   if (pe && re && pe === re) return true;
-  const pd = (p.phoneDisplay ?? '').replace(/\D/g, '');
-  const rd = (r.phone ?? '').replace(/\D/g, '');
-  if (pd.length >= 10 && rd.length >= 10 && pd.slice(-10) === rd.slice(-10)) return true;
   const linked = p.linkedCustomerId;
   if (linked) {
     const order = getOrderById(r.orderId);

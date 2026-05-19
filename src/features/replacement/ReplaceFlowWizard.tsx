@@ -247,9 +247,9 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
       addRegisteredRma({
         ...pending,
         localId,
-        email: profile.email?.trim() || pending.email,
-        phone: profile.phoneDisplay?.trim() || pending.phone,
-        contactName: profile.name?.trim() || pending.contactName,
+        email: profile.email.trim() || pending.email,
+        phone: pending.phone,
+        contactName: profile.name.trim() || pending.contactName,
       });
       clearPostReplacementPrefill();
       navigate('/account/requests');

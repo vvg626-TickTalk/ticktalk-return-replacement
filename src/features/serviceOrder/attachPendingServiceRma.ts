@@ -2,7 +2,6 @@ import {
   clearPendingServiceOrder,
   readPendingServiceOrder,
 } from '@/features/serviceOrder/pendingServiceOrderStorage';
-import { sanitizePhoneForStorage } from '@/features/serviceOrder/phoneSanitize';
 import type { RegisteredServiceRma, ServiceOrderProfile } from '@/features/serviceOrder/types';
 
 /**
@@ -16,13 +15,12 @@ export function attachPendingRmaIfAny(
   const pre = readPendingServiceOrder();
   if (!pre?.pendingRma) return;
   const localId = `reg-${Date.now()}`;
-  const phoneFromProfile = profile.phoneDisplay ? sanitizePhoneForStorage(profile.phoneDisplay) : '';
   addRegisteredRma({
     ...pre.pendingRma,
     localId,
-    email: profile.email?.trim() || pre.pendingRma.email,
-    phone: phoneFromProfile || pre.pendingRma.phone,
-    contactName: profile.name?.trim() || pre.pendingRma.contactName,
+    email: profile.email.trim() || pre.pendingRma.email,
+    phone: pre.pendingRma.phone,
+    contactName: profile.name.trim() || pre.pendingRma.contactName,
   });
   clearPendingServiceOrder();
 }
