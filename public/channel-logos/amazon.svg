@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 36" fill="none" role="img" aria-hidden="true">
+  <text
+    x="2"
+    y="20"
+    fill="#0F1111"
+    font-family="ui-sans-serif, system-ui, -apple-system, Arial, sans-serif"
+    font-size="18"
+    font-weight="600"
+    letter-spacing="-0.03em"
+  >amazon</text>
+  <path
+    d="M6 26c10 5 24 6 34 2 6-2 12-5 16-9"
+    stroke="#FF9900"
+    stroke-width="2.4"
+    stroke-linecap="round"
+    fill="none"
+  />
+</svg>

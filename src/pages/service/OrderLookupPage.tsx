@@ -24,6 +24,7 @@ import {
 } from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 import { ORDER_LOOKUP_DEMO_HINT } from '@/features/orderLookup/orderLookupDemoHints';
+import { OrderLookupChannelLogo } from '@/features/orderLookup/OrderLookupChannelLogo';
 
 function cellInputMode(kind: 'digits' | 'letters' | 'alphanumeric'): 'numeric' | 'text' {
   return kind === 'digits' ? 'numeric' : 'text';
@@ -216,9 +217,9 @@ export function OrderLookupPage() {
 
         <form onSubmit={onSubmit} className="mt-8">
           <div className={cn(supportPanel, 'px-5 py-6 sm:px-8 sm:py-7')}>
-            <p className="text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{format.label}</p>
+            <OrderLookupChannelLogo channelId={channelId} label={format.label} />
 
-            <div className="mt-6 flex items-center justify-center gap-1">
+            <div className="mt-2 flex items-center justify-center gap-1 sm:mt-3">
               <span className="text-sm font-semibold text-support-navy">Enter Order Number</span>
               <button
                 type="button"
