@@ -8,9 +8,9 @@ import type {
 } from '@/types/models';
 
 export const warranties: Warranty[] = [
-  { id: 'wty-101-a', orderLineId: 'line-ord-101-a', startsOn: '2026-04-01', endsOn: '2028-04-01', tier: 'care_plus' },
+  { id: 'wty-101-a', orderLineId: 'line-ord-101-a', startsOn: '2026-05-05', endsOn: '2028-05-05', tier: 'care_plus' },
   { id: 'wty-101-d', orderLineId: 'line-ord-101-d', startsOn: '2026-04-12', endsOn: '2027-04-12', tier: 'standard' },
-  { id: 'wty-101-e', orderLineId: 'line-ord-101-e', startsOn: '2024-09-10', endsOn: '2025-09-10', tier: 'standard' },
+  { id: 'wty-101-e', orderLineId: 'line-ord-101-e', startsOn: '2026-02-15', endsOn: '2028-02-15', tier: 'standard' },
   { id: 'wty-103-a', orderLineId: 'line-ord-103-a', startsOn: '2026-05-13', endsOn: '2027-05-13', tier: 'standard' },
   { id: 'wty-103-b', orderLineId: 'line-ord-103-b', startsOn: '2026-05-13', endsOn: '2027-05-13', tier: 'standard' },
   { id: 'wty-105-a', orderLineId: 'line-ord-105-a', startsOn: '2026-03-08', endsOn: '2027-03-08', tier: 'standard' },
@@ -111,7 +111,7 @@ export const rmas: Rma[] = [
     updatedAt: '2026-05-15T09:05:00.000Z',
     orderLineId: 'line-ord-101-d',
     deviceImei: '356789022222222',
-    summary: 'Replacement — Ocean Blue watch restock queue',
+    summary: 'Replacement — Green TT5 restock queue',
   },
   {
     id: 'rma-5003',
@@ -119,13 +119,13 @@ export const rmas: Rma[] = [
     orderId: 'ord-101',
     customerId: 'cust-ada',
     kind: 'replacement',
-    status: 'awaiting_your_reply',
+    status: 'cancelled',
     createdAt: '2026-05-13T12:00:00.000Z',
     updatedAt: '2026-05-16T11:30:00.000Z',
     orderLineId: 'line-ord-101-a',
     deviceImei: '356789011111111',
     parentRmaId: 'rma-fam-9f0',
-    summary: 'RMA RP100084 follow-on — battery overheating · in review (awaits your reply)',
+    summary: 'Replacement request withdrawn — demo scenario reset so Purple TT5 can start a new replacement.',
   },
   {
     id: 'rma-fam-9f0',

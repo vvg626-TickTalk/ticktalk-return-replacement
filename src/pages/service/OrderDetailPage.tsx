@@ -5,13 +5,7 @@ import { WatchImeiModal } from '@/components/WatchImeiModal';
 import { lineRequiresImei } from '@/features/replacement/eligibility';
 import { groupOrderLinesForDisplay } from '@/features/serviceOrder/orderLineGroups';
 import type { ServiceFlowLocationState } from '@/features/serviceOrder/serviceFlowLocation';
-import {
-  getLineReplaceAction,
-  getLineReturnAction,
-  getLineTradeInAction,
-  imeiDisplayForLine,
-  orderIsFullyUnshipped,
-} from '@/features/serviceOrder/serviceLineActions';
+import { getLineReturnAction, getLineReplaceAction, getLineTradeInAction, imeiDisplayForLine, orderIsFullyUnshipped } from '@/features/serviceOrder/serviceLineActions';
 import { seedTradeInFromOrderLine } from '@/features/tradeIn/tradeInDemoStorage';
 import { tradeInCareStatusLine } from '@/features/tradeIn/tradeInCarePlus';
 import { RMA_STATUS_CUSTOMER_LABEL } from '@/features/serviceOrder/rmaStatusLabels';
@@ -121,39 +115,33 @@ function LineServiceButtons({
   };
 
   if (line.demoReturned) {
-    return <p className="text-[11px] font-medium text-slate-600">Returned</p>;
+    return null;
   }
 
   if (orderUnshipped) return null;
 
-  const rowBtn = (enabled: boolean, enabledTokens: string) =>
+  const actionClasses = (enabled: boolean, variant: 'secondary' | 'primary') =>
     cn(
-      enabledTokens,
-      'min-h-11 flex-1 rounded-full px-3 text-[12px] font-semibold sm:min-w-[4.5rem] sm:flex-none',
-      !enabled && 'opacity-50 grayscale-[0.35]',
+      'min-h-11 flex-1 rounded-full px-3 text-[13px] font-semibold sm:min-w-[5rem] sm:flex-none',
+      enabled
+        ? variant === 'primary'
+          ? supportButtonPrimary
+          : supportButtonSecondary
+        : cn(
+            'border border-slate-300 bg-slate-100 text-slate-700 shadow-sm',
+            'hover:bg-slate-200/85 active:scale-[0.99]',
+          ),
     );
 
   return (
-    <div className="mt-2 flex flex-wrap gap-2">
-      <button
-        type="button"
-        className={rowBtn(ret.enabled, supportButtonSecondary)}
-        onClick={goReturn}
-      >
+    <div className="mt-2.5 flex flex-wrap gap-2">
+      <button type="button" className={actionClasses(ret.enabled, 'secondary')} onClick={goReturn}>
         Return
       </button>
-      <button
-        type="button"
-        className={rowBtn(rep.enabled, supportButtonSecondary)}
-        onClick={goReplace}
-      >
+      <button type="button" className={actionClasses(rep.enabled, 'secondary')} onClick={goReplace}>
         Replace
       </button>
-      <button
-        type="button"
-        className={rowBtn(tri.enabled, supportButtonPrimary)}
-        onClick={goTradeIn}
-      >
+      <button type="button" className={actionClasses(tri.enabled, 'primary')} onClick={goTradeIn}>
         Trade-in
       </button>
     </div>
@@ -230,6 +218,12 @@ export function OrderDetailPage() {
           <p className="truncate text-[13px] font-semibold text-slate-900">{product.name}</p>
           <p className="text-[11px] text-slate-600">
             Qty {line.quantity}
+            {line.demoPurchasedColor ? (
+              <>
+                <span className="text-slate-400"> · </span>
+                {line.demoPurchasedColor}
+              </>
+            ) : null}
             <span className="text-slate-400"> · </span>
             {statusLabel}
             {line.isGift ? (
@@ -327,11 +321,13 @@ export function OrderDetailPage() {
               <div key={primary.id} className="py-2">
                 {lineRow(primary)}
                 {gifts.length ? (
-                  <div className="mt-2 ml-2 border-l-2 border-support-navy/20 pl-3">
-                    <p className="mb-1 text-[10px] font-medium text-slate-500">Includes free gift</p>
-                    <p className="text-[10px] leading-snug text-slate-600">Free gifts must be returned with the main product.</p>
+                  <div className="mt-3 ml-1 border-l-2 border-support-navy/25 pl-4 sm:ml-2 sm:pl-5">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-slate-500">Bundle · gift</p>
+                    <p className="mt-1 text-[11px] leading-snug text-slate-600">
+                      Free gifts must be returned with the main product.
+                    </p>
                     {gifts.map((g) => (
-                      <div key={g.id} className="mt-2">
+                      <div key={g.id} className="mt-3 rounded-xl bg-white/80 py-1 ring-1 ring-slate-200/70">
                         {lineRow(g)}
                       </div>
                     ))}

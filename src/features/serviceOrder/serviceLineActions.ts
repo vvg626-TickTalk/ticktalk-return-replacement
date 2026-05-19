@@ -1,7 +1,7 @@
 import { isLineReplaceEligible, lineRequiresImei } from '@/features/replacement/eligibility';
 import { RETURN_WINDOW_DAYS } from '@/features/return/returnConstants';
 import { getReturnEligibility } from '@/features/return/returnEligibility';
-import { customerHasActiveCarePlus } from '@/features/tradeIn/tradeInCarePlus';
+import { lineHasActiveCarePlus } from '@/features/tradeIn/tradeInCarePlus';
 import { getWarrantyForLine, hasOpenReplacementOnLine, hasOpenReturnOnLine } from '@/mock-data';
 import type { Order, OrderLine, Product } from '@/types/models';
 
@@ -65,7 +65,7 @@ const inTransitReturn: ServiceBlockedModal = {
 
 const outsideWarrantyReplace: ServiceBlockedModal = {
   title: 'Replacement Not Available',
-  body: 'Replacement is not available: this product is outside the warranty period.',
+  body: 'Replacement is not available because the warranty on this device has ended. You may still have trade-in or upgrade options when eligible.',
 };
 
 const outsideWindowReturn: ServiceBlockedModal = {
@@ -88,11 +88,6 @@ const returnedBlocked: ServiceBlockedModal = {
   body: 'This item has already been returned.',
 };
 
-const tradeInNotEligibleYet: ServiceBlockedModal = {
-  title: 'Trade-in Not Available',
-  body: 'Trade-in is available once the 1-year warranty has ended or TickTalk Care+ is no longer active on your account.',
-};
-
 const duplicateOpenReturn: ServiceBlockedModal = {
   title: 'Return Not Available',
   body: 'A return request is already open for this product.',
@@ -100,7 +95,7 @@ const duplicateOpenReturn: ServiceBlockedModal = {
 
 const duplicateOpenReplace: ServiceBlockedModal = {
   title: 'Replacement Not Available',
-  body: 'A replacement request is already open for this product.',
+  body: 'A replacement request is already open for this product. Check “Service on this order” below or your account requests for status updates.',
 };
 
 const returnBlockedOpenReplacement: ServiceBlockedModal = {
@@ -229,9 +224,23 @@ export function getLineTradeInAction(
     };
   }
   const inWarranty = isWithinReplacementWarranty(line, order, referenceDate);
-  const carePlusActive = customerHasActiveCarePlus(order.customerId, referenceDate);
-  if (inWarranty && carePlusActive) {
-    return { enabled: false, modal: tradeInNotEligibleYet, showAsDisabled: true };
+  const carePlusOnDevice = lineHasActiveCarePlus(line, order.customerId, referenceDate);
+
+  if (inWarranty || carePlusOnDevice) {
+    let body: string;
+    if (carePlusOnDevice && inWarranty) {
+      body =
+        'TickTalk Care+ is active on this watch. Trade-in opens after Care+ ends and the device is out of warranty.';
+    } else if (carePlusOnDevice) {
+      body = 'TickTalk Care+ is still enrolled on this device. Trade-in opens after your Care+ benefit ends.';
+    } else {
+      body = 'This device is still under warranty. Trade-in opens after the warranty period ends.';
+    }
+    return {
+      enabled: false,
+      modal: { title: 'Trade-in Not Available', body },
+      showAsDisabled: true,
+    };
   }
   return { enabled: true };
 }
