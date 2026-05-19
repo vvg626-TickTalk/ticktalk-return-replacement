@@ -2,6 +2,18 @@ import type { OrderLine } from '@/types/models';
 
 export const orderLines: OrderLine[] = [
   {
+    id: 'line-ord-201-a',
+    orderId: 'ord-201',
+    productId: 'prod-tt-watch-5',
+    quantity: 1,
+    imei: '356789012399999',
+    isGift: false,
+    status: 'shipped',
+    deliveredAt: '2024-03-20T12:00:00.000Z',
+    demoLineTotalCents: 199_99,
+    demoPurchasedColor: 'Gray',
+  },
+  {
     id: 'line-ord-101-a',
     orderId: 'ord-101',
     productId: 'prod-tt-watch-5',

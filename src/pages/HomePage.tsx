@@ -83,6 +83,18 @@ export function HomePage() {
             </Link>
           </li>
           <li>
+            <span className="font-semibold">Trade-in eligible (OOW, no Care+):</span>{' '}
+            <Link className="font-mono text-teal-900 hover:underline" to="/service/order/ord-201">
+              ord-201
+            </Link>
+          </li>
+          <li>
+            <span className="font-semibold">Trade-in demo (Care / web):</span>{' '}
+            <Link className="font-mono text-teal-900 hover:underline" to="/trade-in/app-entry">
+              /trade-in/app-entry
+            </Link>
+          </li>
+          <li>
             <span className="font-semibold">RMA:</span>{' '}
             <Link className="font-mono text-teal-900 hover:underline" to="/account/rma/rma-5002">
               rma-5002

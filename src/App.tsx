@@ -23,6 +23,9 @@ import { ServiceLoginPage } from '@/pages/service/ServiceLoginPage';
 import { ServiceNewPage } from '@/pages/service/ServiceNewPage';
 import { ServiceSignupPage } from '@/pages/service/ServiceSignupPage';
 import { TradeInPage } from '@/pages/service/TradeInPage';
+import { TradeInAppEntryPage } from '@/pages/tradeIn/TradeInAppEntryPage';
+import { TradeInPreviewPage } from '@/pages/tradeIn/TradeInPreviewPage';
+import { TradeInProductPage } from '@/pages/tradeIn/TradeInProductPage';
 
 export function App() {
   return (
@@ -32,6 +35,30 @@ export function App() {
         element={
           <AppShell mode="marketing">
             <HomePage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/trade-in/app-entry"
+        element={
+          <AppShell mode="marketing">
+            <TradeInAppEntryPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/trade-in/preview"
+        element={
+          <AppShell mode="marketing">
+            <TradeInPreviewPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/trade-in/product/:productId"
+        element={
+          <AppShell mode="marketing">
+            <TradeInProductPage />
           </AppShell>
         }
       />

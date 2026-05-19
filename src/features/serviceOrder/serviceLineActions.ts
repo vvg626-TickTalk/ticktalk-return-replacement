@@ -1,6 +1,7 @@
 import { isLineReplaceEligible, lineRequiresImei } from '@/features/replacement/eligibility';
 import { RETURN_WINDOW_DAYS } from '@/features/return/returnConstants';
 import { getReturnEligibility } from '@/features/return/returnEligibility';
+import { customerHasActiveCarePlus } from '@/features/tradeIn/tradeInCarePlus';
 import { getWarrantyForLine } from '@/mock-data';
 import type { Order, OrderLine, Product } from '@/types/models';
 
@@ -87,6 +88,16 @@ const returnedBlocked: ServiceBlockedModal = {
   body: 'This item has already been returned.',
 };
 
+const tradeInBlockedInWarranty: ServiceBlockedModal = {
+  title: 'Trade-in Not Available',
+  body: 'Trade-in is available when your device is outside the 1-year warranty and TickTalk Care+ is not active.',
+};
+
+const tradeInBlockedCarePlus: ServiceBlockedModal = {
+  title: 'Trade-in Not Available',
+  body: 'This device has active TickTalk Care+. Trade-in is offered when Care+ is not active.',
+};
+
 function isWithinReturnWindowLine(line: OrderLine, order: Order, referenceDate: Date): boolean {
   const start = new Date(line.deliveredAt ?? order.createdAt);
   const end = new Date(start);
@@ -163,8 +174,9 @@ export function getLineReplaceAction(
 export function getLineTradeInAction(
   line: OrderLine,
   product: Product | undefined,
-  _order: Order,
+  order: Order,
   orderUnshipped: boolean,
+  referenceDate: Date = new Date(),
 ): LineReplaceAction {
   if (line.demoReturned) {
     return { enabled: false, modal: returnedBlocked, showAsDisabled: false };
@@ -188,6 +200,12 @@ export function getLineTradeInAction(
       },
       showAsDisabled: true,
     };
+  }
+  if (isWithinReplacementWarranty(line, order, referenceDate)) {
+    return { enabled: false, modal: tradeInBlockedInWarranty, showAsDisabled: true };
+  }
+  if (customerHasActiveCarePlus(order.customerId, referenceDate)) {
+    return { enabled: false, modal: tradeInBlockedCarePlus, showAsDisabled: true };
   }
   return { enabled: true };
 }

@@ -12,6 +12,8 @@ import {
   imeiDisplayForLine,
   orderIsFullyUnshipped,
 } from '@/features/serviceOrder/serviceLineActions';
+import { seedTradeInFromOrderLine } from '@/features/tradeIn/tradeInDemoStorage';
+import { tradeInCareStatusLine } from '@/features/tradeIn/tradeInCarePlus';
 import {
   getOrderById,
   getOrderLinesForOrder,
@@ -47,7 +49,7 @@ function LineServiceButtons({
   orderUnshipped: boolean;
   onOpenImei: (flow: 'return' | 'replace') => void;
   onBlocked: (title: string, body: string) => void;
-  onTradeIn: () => void;
+  onTradeIn: (line: OrderLine, product: NonNullable<ReturnType<typeof getProductById>>) => void;
 }) {
   const navigate = useNavigate();
   const ret = getLineReturnAction(line, product, order, orderUnshipped);
@@ -87,7 +89,8 @@ function LineServiceButtons({
       onBlocked(tri.modal.title, tri.modal.body);
       return;
     }
-    onTradeIn();
+    if (!product) return;
+    onTradeIn(line, product);
   };
 
   if (line.demoReturned) {
@@ -200,7 +203,15 @@ export function OrderDetailPage() {
               orderUnshipped={orderUnshipped}
               onOpenImei={(flow) => setImeiFlow({ flow, lineId: line.id })}
               onBlocked={(title, body) => setMsg({ title, body })}
-              onTradeIn={() => navigate('/service/trade-in')}
+              onTradeIn={(line, product) => {
+                seedTradeInFromOrderLine({
+                  productName: product.name,
+                  colorLabel: line.demoPurchasedColor,
+                  imei: line.imei ?? '—',
+                  careStatusLabel: tradeInCareStatusLine(order.customerId),
+                });
+                navigate('/trade-in/preview');
+              }}
             />
           ) : null}
         </div>

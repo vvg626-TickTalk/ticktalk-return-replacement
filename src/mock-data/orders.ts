@@ -2,6 +2,14 @@ import type { Order } from '@/types/models';
 
 export const orders: Order[] = [
   {
+    id: 'ord-201',
+    channel: 'myticktalk',
+    externalOrderRef: '77821',
+    shippingPostal: '94107',
+    customerId: 'cust-bj',
+    createdAt: '2024-03-01T12:00:00.000Z',
+  },
+  {
     id: 'ord-101',
     channel: 'myticktalk',
     externalOrderRef: '92118',
