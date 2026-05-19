@@ -4,7 +4,7 @@ export const orders: Order[] = [
   {
     id: 'ord-101',
     channel: 'myticktalk',
-    externalOrderRef: 'MTT-2405-009821',
+    externalOrderRef: '92118',
     shippingPostal: '92118',
     customerId: 'cust-ada',
     createdAt: '2026-04-18T12:30:00.000Z',

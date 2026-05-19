@@ -1,4 +1,4 @@
-/** Order lookup segment config — visual structure only; lookup still matches full `externalOrderRef` strings in mock data. */
+/** Order lookup — channel-specific entry; composed value must match mock `externalOrderRef`. */
 
 export type ChannelId = 'myticktalk' | 'amazon' | 'walmart' | 'bestbuy';
 
@@ -9,14 +9,21 @@ export type SegmentDef = {
   kind: SegmentKind;
 };
 
+/** myticktalk.com: one continuous numeric code (see `OrderLookupPage`). */
+export type FlexNumericSpec = {
+  minDigits: number;
+  maxDigits: number;
+};
+
 export type ChannelOrderFormat = {
   id: ChannelId;
-  /** Shown in channel picker */
   label: string;
-  segments: SegmentDef[];
-  /** How segments compose into `externalOrderRef` for lookup */
-  join: 'dashes' | 'none';
-  /** Short shopper-facing example (no “demo” / dev wording) */
+  /** Amazon / Walmart / Best Buy — fixed-width segment groups. */
+  segments?: SegmentDef[];
+  /** How segments compose into `externalOrderRef` (segment channels only). */
+  join?: 'dashes' | 'none';
+  /** myticktalk.com only — 5–7 digits, no letters or dashes in stored ref. */
+  flexNumeric?: FlexNumericSpec;
   exampleDisplay: string;
   helpTitle: string;
   helpBody: string;
@@ -26,16 +33,11 @@ export const ORDER_LOOKUP_CHANNELS: ChannelOrderFormat[] = [
   {
     id: 'myticktalk',
     label: 'myticktalk.com',
-    segments: [
-      { maxLength: 3, kind: 'letters' },
-      { maxLength: 4, kind: 'digits' },
-      { maxLength: 6, kind: 'digits' },
-    ],
-    join: 'dashes',
-    exampleDisplay: 'MTT · 2405 · 009821',
+    flexNumeric: { minDigits: 5, maxDigits: 7 },
+    exampleDisplay: 'e.g. 92118 — 5–7 digits',
     helpTitle: 'Where to find your TickTalk order number',
     helpBody:
-      'Open your order confirmation email or sign in at myticktalk.com and open your order. The order number is three groups: a short store prefix, then two number groups, separated by dashes.',
+      'Check your order confirmation email or your myticktalk.com account. The order number is a short numeric code (5–7 digits). Enter digits only — no spaces or dashes.',
   },
   {
     id: 'amazon',
@@ -89,8 +91,11 @@ export const ORDER_LOOKUP_BY_ID: Record<ChannelId, ChannelOrderFormat> = ORDER_L
   {} as Record<ChannelId, ChannelOrderFormat>,
 );
 
-export function emptySegmentsForChannel(id: ChannelId): string[] {
-  return ORDER_LOOKUP_BY_ID[id].segments.map(() => '');
+export function emptyPartsForChannel(id: ChannelId): string[] {
+  const fmt = ORDER_LOOKUP_BY_ID[id];
+  if (fmt.flexNumeric) return [''];
+  const segs = fmt.segments ?? [];
+  return segs.map(() => '');
 }
 
 export function sanitizeSegment(value: string, def: SegmentDef): string {
@@ -109,10 +114,25 @@ export function sanitizeSegment(value: string, def: SegmentDef): string {
     .slice(0, def.maxLength);
 }
 
+export function sanitizeFlexNumeric(value: string, spec: FlexNumericSpec): string {
+  return value.replace(/\D/g, '').slice(0, spec.maxDigits);
+}
+
+export function flexNumericEntryComplete(part: string, spec: FlexNumericSpec): boolean {
+  const d = (part ?? '').replace(/\D/g, '');
+  return d.length >= spec.minDigits && d.length <= spec.maxDigits;
+}
+
 export function composeExternalOrderRef(id: ChannelId, parts: string[]): string {
   const fmt = ORDER_LOOKUP_BY_ID[id];
-  const cleaned = fmt.segments.map((def, i) => sanitizeSegment(parts[i] ?? '', def));
-  if (fmt.join === 'dashes') {
+  if (fmt.flexNumeric) {
+    return sanitizeFlexNumeric(parts[0] ?? '', fmt.flexNumeric);
+  }
+  const segments = fmt.segments;
+  const join = fmt.join ?? 'none';
+  if (!segments?.length) return '';
+  const cleaned = segments.map((def, i) => sanitizeSegment(parts[i] ?? '', def));
+  if (join === 'dashes') {
     return cleaned.join('-');
   }
   return cleaned.join('');
@@ -120,14 +140,32 @@ export function composeExternalOrderRef(id: ChannelId, parts: string[]): string 
 
 export function segmentsComplete(id: ChannelId, parts: string[]): boolean {
   const fmt = ORDER_LOOKUP_BY_ID[id];
-  return fmt.segments.every((def, i) => (parts[i] ?? '').length === def.maxLength);
+  const segments = fmt.segments;
+  if (!segments?.length) return false;
+  return segments.every((def, i) => (parts[i] ?? '').length === def.maxLength);
 }
 
-/** Parse clipboard / pasted full order ref into segment values; returns null if unrecognized. */
+export function orderEntryComplete(id: ChannelId, parts: string[]): boolean {
+  const fmt = ORDER_LOOKUP_BY_ID[id];
+  if (fmt.flexNumeric) {
+    return flexNumericEntryComplete(parts[0] ?? '', fmt.flexNumeric);
+  }
+  return segmentsComplete(id, parts);
+}
+
+/** Parse clipboard / pasted full order ref into parts.; returns null if unrecognized. */
 export function parsePastedOrderRef(id: ChannelId, raw: string): string[] | null {
   const fmt = ORDER_LOOKUP_BY_ID[id];
   const t = raw.trim();
   if (!t) return null;
+
+  if (id === 'myticktalk') {
+    const spec = fmt.flexNumeric;
+    if (!spec) return null;
+    const d = t.replace(/\D/g, '');
+    if (d.length >= spec.minDigits && d.length <= spec.maxDigits) return [d];
+    return null;
+  }
 
   if (id === 'amazon') {
     const m = t.match(/^(\d{3})-(\d{7})-(\d{7})$/);
@@ -156,16 +194,5 @@ export function parsePastedOrderRef(id: ChannelId, raw: string): string[] | null
     return null;
   }
 
-  // myticktalk
-  const byDash = t.split('-').map((s) => s.trim());
-  if (byDash.length === 3) {
-    const a = sanitizeSegment(byDash[0] ?? '', fmt.segments[0]!);
-    const b = sanitizeSegment(byDash[1] ?? '', fmt.segments[1]!);
-    const c = sanitizeSegment(byDash[2] ?? '', fmt.segments[2]!);
-    if (a.length === 3 && b.length === 4 && c.length === 6) return [a, b, c];
-  }
-  const compact = t.replace(/[^A-Za-z0-9]/g, '');
-  const m3 = compact.match(/^([A-Za-z]{3})(\d{4})(\d{6})$/i);
-  if (m3) return [m3[1].toUpperCase(), m3[2], m3[3]];
   return null;
 }
