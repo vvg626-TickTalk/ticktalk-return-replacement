@@ -1,7 +1,17 @@
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
-import { cn } from '@/utils/cn';
 import { Button } from '@/components/Button';
+import {
+  supportBodySmall,
+  supportModalBackdrop,
+  supportModalBody,
+  supportModalCloseBtn,
+  supportModalFooter,
+  supportModalHeader,
+  supportModalShell,
+  supportModalTitle,
+} from '@/ui/supportTheme';
+import { cn } from '@/utils/cn';
 
 export type ModalProps = {
   open: boolean;
@@ -62,68 +72,55 @@ export function Modal({
       <button
         type="button"
         aria-label="Close dialog"
-        className="absolute inset-0 bg-slate-900/45 backdrop-blur-[2px] transition-opacity"
+        className={cn('absolute inset-0', supportModalBackdrop, 'transition-opacity')}
         onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className={cn(
-          'relative z-10 flex max-h-[min(92dvh,40rem)] w-full max-w-lg flex-col overflow-hidden rounded-t-[1.25rem] border border-slate-200/90 bg-white shadow-[0_8px_40px_rgba(15,23,42,0.12)] sm:rounded-2xl',
-        )}
+        className={supportModalShell}
       >
-        <div className="flex shrink-0 items-start gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
-          <div className="min-w-0 flex-1 space-y-1">
-            <h2 id="modal-title" className="text-lg font-semibold leading-tight tracking-tight text-brand-ink">
+        <div className={supportModalHeader}>
+          <div className="min-w-0 flex-1 space-y-1 pr-2">
+            <h2 id="modal-title" className={cn(supportModalTitle, '!text-xl sm:!text-[1.625rem]')}>
               {title}
             </h2>
-            {description ? (
-              <p className="text-sm leading-snug text-slate-600">{description}</p>
-            ) : null}
+            {description ? <p className={supportBodySmall}>{description}</p> : null}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg leading-none text-slate-500 hover:bg-slate-100 active:bg-slate-200/80"
-            aria-label="Close"
-          >
+          <button type="button" onClick={onClose} className={supportModalCloseBtn} aria-label="Close">
             ×
           </button>
         </div>
 
-        {children ? (
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 sm:px-6">
-            {children}
-          </div>
-        ) : null}
+        {children ? <div className={supportModalBody}>{children}</div> : null}
 
         {footer ? (
-          <div className="shrink-0 border-t border-slate-100 bg-white px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-4">
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">{footer}</div>
+          <div className={supportModalFooter}>
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">{footer}</div>
           </div>
         ) : showFooter && (primaryAction || secondaryAction) ? (
-          <div className="shrink-0 border-t border-slate-100 bg-white px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-4">
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            {secondaryAction ? (
-              <Button
-                variant="secondary"
-                disabled={secondaryAction.disabled}
-                onClick={secondaryAction.onClick}
+          <div className={supportModalFooter}>
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              {secondaryAction ? (
+                <Button
+                  variant="secondary"
+                  disabled={secondaryAction.disabled}
+                  onClick={secondaryAction.onClick}
                   className="w-full sm:w-auto"
-              >
-                {secondaryAction.label}
-              </Button>
-            ) : null}
-            {primaryAction ? (
+                >
+                  {secondaryAction.label}
+                </Button>
+              ) : null}
+              {primaryAction ? (
                 <Button
                   disabled={primaryAction.disabled}
                   onClick={primaryAction.onClick}
                   className="w-full sm:w-auto"
                 >
-                {primaryAction.label}
-              </Button>
-            ) : null}
+                  {primaryAction.label}
+                </Button>
+              ) : null}
             </div>
           </div>
         ) : null}

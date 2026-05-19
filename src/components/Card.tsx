@@ -1,4 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react';
+import { supportPanel } from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
 export type CardProps = HTMLAttributes<HTMLDivElement> & {
@@ -24,8 +25,8 @@ export function Card({
   return (
     <div
       className={cn(
-        'rounded-2xl border border-slate-200/90 bg-white shadow-sm shadow-slate-900/[0.04]',
-        muted && 'border-slate-100/90 bg-slate-50/50 shadow-sm',
+        supportPanel,
+        muted && 'border-slate-100/90 bg-slate-50/40 shadow-sm shadow-slate-900/[0.02]',
         paddingMap[padding],
         className,
       )}

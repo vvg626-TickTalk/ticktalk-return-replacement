@@ -71,7 +71,7 @@ export function ReplacementOosResolveModal({
                 className={cn(
                   'flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors',
                   checked
-                    ? 'border-teal-700/80 bg-teal-50/45 ring-2 ring-teal-700/25'
+                    ? 'border-support-navy/40 bg-support-tint ring-2 ring-support-navy/18'
                     : 'border-slate-200 bg-white hover:border-slate-300',
                 )}
               >

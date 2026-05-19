@@ -324,16 +324,13 @@ export function AccountRmaDetailPage() {
                     key={step.id}
                     className={cn(
                       'rounded-2xl border border-slate-200/90 px-3 py-2.5',
-                      isCurrent && 'border-teal-200 bg-teal-50/60 ring-1 ring-teal-100',
+                      isCurrent && 'border-support-navy/25 bg-support-tint ring-1 ring-support-navy/12',
                     )}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <Link
                         to={`/account/rma/${step.id}`}
-                        className={cn(
-                          'font-mono text-sm font-semibold hover:underline',
-                          isCurrent ? 'text-teal-950' : 'text-support-navy',
-                        )}
+                        className="font-mono text-sm font-semibold text-support-navy hover:underline"
                       >
                         {step.code}
                         {isCurrent ? ' · this request' : ''}
@@ -411,7 +408,7 @@ export function AccountRmaDetailPage() {
 
         {showCancel ? (
           <div className="mt-8 flex flex-col gap-2 border-t border-slate-100 pt-6 sm:flex-row">
-            <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={() => setCancelOpen(true)}>
+            <Button type="button" variant="danger" className="w-full sm:w-auto" onClick={() => setCancelOpen(true)}>
               {cancelLabel}
             </Button>
           </div>

@@ -29,7 +29,7 @@ export function ProductCard({ product, meta, right, flush, className }: ProductC
         aria-hidden
       />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[0.9375rem] font-semibold leading-snug text-brand-ink">{product.name}</p>
+        <p className="truncate text-[0.9375rem] font-semibold leading-snug text-support-navy">{product.name}</p>
         <p className="truncate text-xs leading-snug text-slate-600">
           {meta ??
             [product.kind === 'watch' ? 'Watch' : 'Accessory', product.generation]

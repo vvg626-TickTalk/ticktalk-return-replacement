@@ -2,7 +2,7 @@ import type { ReplacementReasonDef, ReplacementReasonId } from '@/features/repla
 import { REPLACEMENT_REASONS } from '@/features/replacement/replacementReasons';
 import type { MockUploadItem, PerItemReasonForm } from '@/features/replacement/reasonValidation';
 import { emptyReasonForm, normalizePerItemReasonForm } from '@/features/replacement/reasonValidation';
-import { supportTextarea } from '@/ui/supportPortalLayout';
+import { supportTextarea, supportUploadAddBtn, supportUploadRemoveBtn, supportUploadThumb } from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
 const MAX_UPLOADS = 3;
@@ -59,7 +59,7 @@ function ProgressiveUploadBlock({
         {value.mockUploads.map((u, i) => (
           <div
             key={u.id}
-            className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-[10px] font-medium text-slate-600"
+            className={cn(supportUploadThumb, 'flex flex-col text-[10px] font-medium text-slate-600')}
           >
             <span className="sr-only">
               {kind === 'file' ? 'File' : 'Photo'} {u.label}
@@ -69,7 +69,7 @@ function ProgressiveUploadBlock({
             </span>
             <button
               type="button"
-              className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white text-[11px] leading-none text-slate-600 shadow-sm"
+              className={cn(supportUploadRemoveBtn, 'h-5 w-5 text-[11px]')}
               aria-label="Remove"
               onClick={() => remove(i)}
             >
@@ -78,11 +78,7 @@ function ProgressiveUploadBlock({
           </div>
         ))}
         {value.mockUploads.length < MAX_UPLOADS ? (
-          <button
-            type="button"
-            onClick={add}
-            className="inline-flex min-h-10 items-center justify-center rounded-lg border border-dashed border-support-navy/35 bg-white px-3 text-[12px] font-semibold text-support-navy hover:bg-slate-50"
-          >
+          <button type="button" onClick={add} className={cn(supportUploadAddBtn, 'min-h-10 py-2 text-[12px] font-semibold')}>
             {value.mockUploads.length === 0 ? primaryCta : addAnotherCta}
           </button>
         ) : null}
@@ -174,7 +170,7 @@ function ExpandedReasonBody({
             <button
               type="button"
               onClick={() => patch({ uploadSectionOpen: true })}
-              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-dashed border-support-navy/35 bg-white px-3 text-[12px] font-semibold text-support-navy hover:bg-slate-50"
+              className={cn(supportUploadAddBtn, 'min-h-10 py-2 text-[12px] font-semibold')}
             >
               {up.linkText ?? '+ Add file'}
             </button>

@@ -53,7 +53,7 @@ import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAcco
 import type { RegisteredServiceRma } from '@/features/serviceOrder/types';
 import { getCustomerById, getOrderLinesForOrder, getProductById } from '@/mock-data';
 import { fieldControl, fieldControlMono } from '@/ui/formControls';
-import { supportPanel, supportSectionHead } from '@/ui/supportPortalLayout';
+import { supportPanel, supportSectionHead } from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
 type WizardStep = 'items' | 'reasons' | 'contact' | 'preview' | 'confirmation';
@@ -459,7 +459,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
             <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.07em] text-slate-500">
               Your products
             </p>
-            <p className="text-base font-semibold text-brand-ink">What needs a replacement?</p>
+            <p className="text-base font-semibold text-support-navy">What needs a replacement?</p>
             <p className="text-sm leading-snug text-slate-600">
               Watches need a <span className="font-medium text-slate-800">15-digit IMEI</span> before you continue.
             </p>
@@ -598,7 +598,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
         <Card>
           <div className="space-y-1">
             <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.07em] text-slate-500">Shipping</p>
-            <p className="text-base font-semibold text-brand-ink">Where should we follow up?</p>
+            <p className="text-base font-semibold text-support-navy">Where should we follow up?</p>
             <p className="text-sm leading-snug text-slate-600">We’ll format your phone for display only in this demo.</p>
           </div>
 
@@ -608,7 +608,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
               className={cn(
                 'min-h-12 flex-1 rounded-xl px-3 text-sm font-semibold transition',
                 addressMode === 'domestic'
-                  ? 'bg-white text-brand-ink shadow-sm ring-1 ring-slate-200/90'
+                  ? 'bg-white text-support-navy shadow-sm ring-1 ring-slate-200/90'
                   : 'text-slate-700 hover:text-slate-900',
               )}
               onClick={() => {
@@ -623,7 +623,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
               className={cn(
                 'min-h-12 flex-1 rounded-xl px-3 text-sm font-semibold transition',
                 addressMode === 'international'
-                  ? 'bg-white text-brand-ink shadow-sm ring-1 ring-slate-200/90'
+                  ? 'bg-white text-support-navy shadow-sm ring-1 ring-slate-200/90'
                   : 'text-slate-700 hover:text-slate-900',
               )}
               onClick={() => setAddressMode('international')}
@@ -732,7 +732,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1">
               <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.07em] text-slate-500">Almost there</p>
-              <p className="text-base font-semibold text-brand-ink">Review your request</p>
+              <p className="text-base font-semibold text-support-navy">Review your request</p>
               <p className="text-sm leading-snug text-slate-600">Edit any section before you submit.</p>
             </div>
           </div>
@@ -824,7 +824,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
       {step === 'confirmation' && rmaCode ? (
         <Card>
           <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.07em] text-support-navy/85">Request received</p>
-          <h2 className="mt-2 text-xl font-semibold tracking-tight text-brand-ink sm:text-2xl">
+          <h2 className="mt-2 text-xl font-semibold tracking-tight text-support-navy sm:text-2xl">
             RMA Number:{' '}
             <span className="font-mono text-[1.0625rem] font-semibold text-support-navy sm:text-xl">{rmaCode}</span>
           </h2>
@@ -1080,7 +1080,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
                     className="flex w-full items-center justify-between gap-3 rounded-2xl border border-brand-line bg-white p-3 text-left shadow-sm hover:border-slate-300"
                   >
                     <div>
-                      <p className="text-sm font-semibold text-brand-ink">{p.name}</p>
+                      <p className="text-sm font-semibold text-support-navy">{p.name}</p>
                       <p className="text-xs text-slate-600">{labelForLine(l)}</p>
                     </div>
                     <span className="text-sm font-semibold text-support-navy">Choose</span>
@@ -1098,7 +1098,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
               return (
                 <>
                   <p className="text-sm text-slate-700">
-                    Adding <span className="font-semibold text-brand-ink">{p?.name}</span>.
+                    Adding <span className="font-semibold text-support-navy">{p?.name}</span>.
                   </p>
                   {needs ? (
                     <FormField

@@ -29,7 +29,7 @@ export function OrderCard({ order, subtitle, className }: OrderCardProps) {
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             {channelLabel[order.channel]}
           </p>
-          <p className="text-sm font-semibold text-brand-ink">{order.externalOrderRef}</p>
+          <p className="text-sm font-semibold text-support-navy">{order.externalOrderRef}</p>
           <p className="text-xs text-slate-600">
             {subtitle ?? `Postal/ZIP · ${order.shippingPostal}`}
           </p>

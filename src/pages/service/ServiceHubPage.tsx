@@ -4,8 +4,8 @@ import {
   supportButtonPrimary,
   supportButtonSecondary,
   supportPageTitle,
+  supportPanel,
 } from '@/ui/supportTheme';
-import { supportPanel } from '@/ui/supportPortalLayout';
 import { cn } from '@/utils/cn';
 
 export function ServiceHubPage() {

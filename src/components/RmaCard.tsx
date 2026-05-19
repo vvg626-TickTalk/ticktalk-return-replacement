@@ -22,7 +22,7 @@ export function RmaCard({ rma, onOpen, className }: RmaCardProps) {
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             {kindLabel[rma.kind]}
           </p>
-          <p className="text-sm font-semibold text-brand-ink">RMA #{rma.code}</p>
+          <p className="text-sm font-semibold text-support-navy">RMA #{rma.code}</p>
           <p className="text-xs text-slate-600">
             Updated {new Date(rma.updatedAt).toLocaleString()}
           </p>

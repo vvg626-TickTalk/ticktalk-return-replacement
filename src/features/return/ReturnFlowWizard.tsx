@@ -48,7 +48,7 @@ import type { ServiceFlowLocationState } from '@/features/serviceOrder/serviceFl
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
 import { getCustomerById, getOrderLinesForOrder, getProductById } from '@/mock-data';
 import { fieldControl, fieldControlMono, fieldTextarea } from '@/ui/formControls';
-import { supportPanel, supportSectionHead, supportToolbarBtn } from '@/ui/supportPortalLayout';
+import { supportPanel, supportSectionHead, supportToolbarBtn } from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
 type WizardStep = 'items' | 'reasons' | 'contact' | 'preview' | 'confirmation';
@@ -345,7 +345,7 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
           className={cn(
             'min-h-12 flex-1 rounded-xl px-3 text-sm font-semibold transition',
             addressMode === 'domestic'
-              ? 'bg-white text-brand-ink shadow-sm ring-1 ring-slate-200/90'
+              ? 'bg-white text-support-navy shadow-sm ring-1 ring-slate-200/90'
               : 'text-slate-700 hover:text-slate-900',
           )}
           onClick={() => {
@@ -360,7 +360,7 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
           className={cn(
             'min-h-12 flex-1 rounded-xl px-3 text-sm font-semibold transition',
             addressMode === 'international'
-              ? 'bg-white text-brand-ink shadow-sm ring-1 ring-slate-200/90'
+              ? 'bg-white text-support-navy shadow-sm ring-1 ring-slate-200/90'
               : 'text-slate-700 hover:text-slate-900',
           )}
           onClick={() => setAddressMode('international')}
@@ -493,7 +493,7 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
         <Card>
           <div className="space-y-1">
             <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.07em] text-slate-500">Your order</p>
-            <p className="text-base font-semibold text-brand-ink">What are you returning?</p>
+            <p className="text-base font-semibold text-support-navy">What are you returning?</p>
             <p className="text-sm leading-snug text-slate-600">
               Add a qualifying item. Watches need a <span className="font-medium text-slate-800">15-digit IMEI</span>.
             </p>
@@ -510,7 +510,7 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
                 const el = getReturnEligibility(line, p, order);
                 return (
                   <li key={line.id} className="flex flex-col gap-0.5 border-b border-slate-100/90 pb-2 last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                    <span className="text-sm font-medium text-brand-ink">{labelForLine(line)}</span>
+                    <span className="text-sm font-medium text-support-navy">{labelForLine(line)}</span>
                     <span className="text-xs leading-snug text-slate-600 sm:text-right">
                       {el.selectable ? 'Eligible to start a return' : el.blockedReason}
                     </span>
@@ -576,7 +576,7 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
                   ) : null}
                   {gifts.length ? (
                     <div className="mt-4 border-t border-slate-100/90 pt-3">
-                      <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.07em] text-teal-900/85">
+                      <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.07em] text-support-navy/90">
                         Included with this return
                       </p>
                       <ul className="mt-2 space-y-2">
@@ -655,18 +655,18 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
                           className={cn(
                             'flex min-h-[3rem] cursor-pointer items-start gap-3 rounded-2xl border p-3 transition-colors',
                             checked
-                              ? 'border-teal-600/80 bg-teal-50/35 ring-2 ring-teal-600/18'
+                              ? 'border-support-navy/35 bg-support-tint ring-2 ring-support-navy/12'
                               : 'border-slate-200/95 bg-white ring-1 ring-slate-100/80',
                           )}
                         >
                           <input
                             type="radio"
-                            className="mt-1 h-[1.125rem] w-[1.125rem] shrink-0 border-slate-300 text-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
+                            className="mt-1 h-[1.125rem] w-[1.125rem] shrink-0 border-slate-300 text-support-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-support-navy/30 focus-visible:ring-offset-2"
                             name={`ret-reason-${lid}`}
                             checked={checked}
                             onChange={() => setReasonId(lid, r.id)}
                           />
-                          <span className="text-base font-medium leading-snug text-brand-ink">{r.label}</span>
+                          <span className="text-base font-medium leading-snug text-support-navy">{r.label}</span>
                         </label>
                       );
                     })}
@@ -677,7 +677,7 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
                         id={`ret-other-${lid}`}
                         className={fieldTextarea}
                         rows={3}
-                        placeholder="A sentence or two is enough."
+                        placeholder="Describe the issue…"
                         value={reasonForm.otherNote}
                         onChange={(e) => patchReason(lid, { otherNote: e.target.value })}
                       />
@@ -694,7 +694,7 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
         <Card>
           <div className="space-y-1">
             <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.07em] text-slate-500">Shipping</p>
-            <p className="text-base font-semibold text-brand-ink">Where should we send return instructions?</p>
+            <p className="text-base font-semibold text-support-navy">Where should we send return instructions?</p>
             <p className="text-sm leading-snug text-slate-600">
               Phone numbers are saved without spaces or symbols for this demo submission.
             </p>
@@ -819,7 +819,7 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
               </div>
               <div className="flex justify-between gap-3 border-t border-slate-200 pt-1.5">
                 <dt className="font-semibold text-slate-900">Estimated refund</dt>
-                <dd className="font-semibold text-teal-950">{formatUsd(refundPreview.afterFee)}</dd>
+                <dd className="font-semibold text-support-navy">{formatUsd(refundPreview.afterFee)}</dd>
               </div>
             </dl>
             <p className="mt-2 text-[11px] leading-snug text-slate-600">
@@ -881,28 +881,28 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
 
       {step === 'confirmation' && rmaCode ? (
         <Card>
-          <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.07em] text-teal-900/85">Request received</p>
-          <h2 className="mt-2 text-xl font-semibold tracking-tight text-brand-ink sm:text-2xl">
-            Return <span className="font-mono text-[1.0625rem] font-semibold text-teal-950 sm:text-xl">{rmaCode}</span>
+          <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.07em] text-support-navy/90">Request received</p>
+          <h2 className="mt-2 text-xl font-semibold tracking-tight text-support-navy sm:text-2xl">
+            Return <span className="font-mono text-[1.0625rem] font-semibold text-support-navy sm:text-xl">{rmaCode}</span>
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-slate-700">
             Your return request is in our queue. Next we’ll check eligibility against your order (demo).
           </p>
           <ul className="mt-5 space-y-3 text-sm leading-snug text-slate-700">
             <li className="flex gap-2">
-              <span className="mt-0.5 text-teal-700" aria-hidden>
+              <span className="mt-0.5 text-support-navy" aria-hidden>
                 ●
               </span>
               <span>We’ll review your items and reasons.</span>
             </li>
             <li className="flex gap-2">
-              <span className="mt-0.5 text-teal-700" aria-hidden>
+              <span className="mt-0.5 text-support-navy" aria-hidden>
                 ●
               </span>
               <span>Watch for email with return instructions or any questions.</span>
             </li>
             <li className="flex gap-2">
-              <span className="mt-0.5 text-teal-700" aria-hidden>
+              <span className="mt-0.5 text-support-navy" aria-hidden>
                 ●
               </span>
               <span>Your refund is issued after we receive and inspect the package—timing depends on your bank.</span>
@@ -1043,10 +1043,10 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
                   className="flex w-full min-h-[3.25rem] items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-left shadow-sm ring-1 ring-slate-100/80 transition hover:border-slate-300"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-brand-ink">{p.name}</p>
+                    <p className="text-sm font-semibold text-support-navy">{p.name}</p>
                     <p className="text-xs text-slate-600">{labelForLine(l)}</p>
                   </div>
-                  <span className="shrink-0 text-sm font-semibold text-teal-900">{ADD_ITEMS_CTA}</span>
+                  <span className="shrink-0 text-sm font-semibold text-support-navy">{ADD_ITEMS_CTA}</span>
                 </button>
               );
             })

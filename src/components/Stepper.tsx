@@ -1,3 +1,4 @@
+import { supportStepProgressFill } from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
 export type StepperStep = {
@@ -25,41 +26,41 @@ export function Stepper({ steps, activeIndex, className }: StepperProps) {
         <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.06em] text-slate-500">
           Step {safeIndex + 1} of {steps.length}
         </p>
-        <p className="truncate text-right text-sm font-semibold text-brand-ink">{current?.label}</p>
+        <p className="truncate text-right text-sm font-semibold text-support-navy">{current?.label}</p>
       </div>
 
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200/90" aria-hidden>
         <div
-          className="h-full rounded-full bg-teal-600 transition-[width] duration-300 ease-out"
+          className={cn('h-full rounded-full', supportStepProgressFill)}
           style={{ width: `${pct}%` }}
         />
       </div>
 
       <ol
         className="-mx-1 flex gap-2 overflow-x-auto overscroll-x-contain px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      aria-label="Progress"
-    >
-      {steps.map((step, idx) => {
+        aria-label="Progress"
+      >
+        {steps.map((step, idx) => {
           const isActive = idx === safeIndex;
           const isDone = step.complete || idx < safeIndex;
-        return (
+          return (
             <li key={step.id} className="shrink-0">
               <span
-              className={cn(
+                className={cn(
                   'inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ring-inset transition-colors',
-                  isActive && 'bg-brand-night text-white ring-brand-night shadow-sm',
-                  isDone && !isActive && 'bg-teal-50 text-teal-900 ring-teal-200/90',
+                  isActive && 'bg-support-navy text-white shadow-sm ring-support-navy',
+                  isDone && !isActive && 'bg-support-tint text-support-navy ring-support-navy/20',
                   !isDone && !isActive && 'bg-white text-slate-600 ring-slate-200/90',
-              )}
-              aria-current={isActive ? 'step' : undefined}
-            >
+                )}
+                aria-current={isActive ? 'step' : undefined}
+              >
                 <span className="font-bold tabular-nums">{isDone && !isActive ? '✓' : idx + 1}</span>
                 <span className="max-w-[9.5rem] truncate sm:max-w-[11rem]">{step.label}</span>
               </span>
-          </li>
-        );
-      })}
-    </ol>
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }

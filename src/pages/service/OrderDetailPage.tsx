@@ -24,8 +24,12 @@ import {
   listRmasForCustomer,
 } from '@/mock-data';
 import type { Order, OrderLine, RmaKind } from '@/types/models';
-import { supportButtonPrimary, supportButtonSecondary } from '@/ui/supportTheme';
-import { supportPanel, supportSectionHead } from '@/ui/supportPortalLayout';
+import {
+  supportPanel,
+  supportSectionHead,
+  supportButtonPrimary,
+  supportButtonSecondary,
+} from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
 const channelLabel: Record<Order['channel'], string> = {
@@ -125,7 +129,7 @@ function LineServiceButtons({
   const rowBtn = (enabled: boolean, enabledTokens: string) =>
     cn(
       enabledTokens,
-      'min-h-9 flex-1 rounded-full px-3 text-[12px] font-semibold sm:min-w-[4.5rem] sm:flex-none',
+      'min-h-11 flex-1 rounded-full px-3 text-[12px] font-semibold sm:min-w-[4.5rem] sm:flex-none',
       !enabled && 'opacity-50 grayscale-[0.35]',
     );
 
@@ -273,7 +277,7 @@ export function OrderDetailPage() {
         </div>
         <button
           type="button"
-          className={cn(supportButtonSecondary, '!min-h-9 shrink-0 px-4 text-xs')}
+          className={cn(supportButtonSecondary, 'shrink-0 px-4 text-xs')}
           onClick={() => navigate('/service/order-lookup')}
         >
             Back

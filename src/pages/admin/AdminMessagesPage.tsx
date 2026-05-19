@@ -18,13 +18,13 @@ export function AdminMessagesPage() {
           <Card key={m.id}>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-brand-ink">{m.subject}</p>
+                <p className="text-sm font-semibold text-support-navy">{m.subject}</p>
                 <p className="text-sm text-slate-700">{m.preview}</p>
                 <p className="text-xs text-slate-600">
                   {new Date(m.sentAt).toLocaleString()} · {m.direction}
                 </p>
               </div>
-              <Link className="text-sm font-semibold text-teal-900 hover:underline" to={`/admin/rma/${m.rmaId}`}>
+              <Link className="text-sm font-semibold text-support-navy hover:underline" to={`/admin/rma/${m.rmaId}`}>
                 Open RMA
               </Link>
             </div>

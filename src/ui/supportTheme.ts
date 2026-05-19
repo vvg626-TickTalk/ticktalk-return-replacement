@@ -1,10 +1,11 @@
 /**
- * TickTalk service portal — single source of truth for PPT-aligned support UI.
- * Import these class bundles in components; avoid one-off Tailwind combinations.
+ * TickTalk service portal — PPT-aligned design system (reference: tradin return replace 260512).
+ * Single source for consumer-facing service UI: navy CTAs, soft cards, calm badges.
+ * Prefer importing from this file instead of ad-hoc Tailwind on pages.
  */
 import { cn } from '@/utils/cn';
 
-/** Raw palette (documentation, non-Tailwind use) */
+/** Raw palette (documentation, Figma/PPT parity) */
 export const SUPPORT_PALETTE = {
   navy: '#071B53',
   navyHover: '#0B276F',
@@ -13,10 +14,13 @@ export const SUPPORT_PALETTE = {
   slateBorder: '#E2E8F0',
   slateMuted: '#94A3B8',
   disabledBg: '#CBD5E1',
+  disabledText: '#64748B',
   pageBg: '#F4F6FA',
   mintBg: '#ECFDF5',
   mintText: '#065F46',
   mintBorder: '#A7F3D0',
+  danger: '#E11D48',
+  dangerHover: '#BE123C',
 } as const;
 
 /* ——— Motion ——— */
@@ -58,53 +62,59 @@ export const supportLabelCompact = cn(
   'text-[11px] font-medium uppercase tracking-wide text-slate-600',
 );
 
-/* ——— Buttons ——— */
+/* ——— Buttons ——— Mobile ≥44px height; consistent pill shape ——— */
 const supportButtonBase = cn(
-  'inline-flex items-center justify-center gap-2 font-semibold tracking-tight',
+  'inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-tight',
   supportTransition,
-  'disabled:cursor-not-allowed active:scale-[0.99]',
+  'min-h-11 px-6 text-[0.9375rem]',
+  'disabled:pointer-events-none disabled:cursor-not-allowed active:scale-[0.99]',
 );
 
 export const supportButtonPrimary = cn(
   supportButtonBase,
-  'min-h-11 min-w-[2.75rem] rounded-full px-6 py-2.5 text-[0.9375rem] sm:min-h-12 sm:px-7',
   'bg-support-navy text-white',
   'shadow-sm shadow-support-navy/10',
   'hover:bg-support-navy-hover hover:shadow-md hover:shadow-support-navy/10',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-support-navy/25 focus-visible:ring-offset-2',
-  'disabled:bg-slate-300 disabled:text-white/80 disabled:shadow-none disabled:hover:bg-slate-300 disabled:hover:shadow-none',
+  'disabled:bg-slate-300 disabled:text-white/90 disabled:shadow-none disabled:hover:bg-slate-300 disabled:hover:shadow-none',
 );
 
 export const supportButtonSecondary = cn(
   supportButtonBase,
-  'min-h-11 min-w-[2.75rem] rounded-full border border-support-navy bg-white px-6 py-2.5 text-[0.9375rem] text-support-navy sm:min-h-12 sm:px-7',
+  'border border-support-navy bg-white text-support-navy',
   'shadow-sm shadow-slate-900/5',
   'hover:bg-support-tint',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-support-navy/20 focus-visible:ring-offset-2',
-  'disabled:border-slate-200 disabled:bg-white disabled:text-slate-400 disabled:shadow-none disabled:hover:bg-white',
+  'disabled:border-slate-200 disabled:bg-slate-200/70 disabled:text-slate-500 disabled:shadow-none disabled:hover:bg-slate-200/70',
 );
 
 export const supportButtonGhost = cn(
   supportButtonBase,
-  'min-h-11 rounded-full px-4 py-2.5 text-[0.9375rem] text-support-navy sm:min-h-12',
+  'border border-transparent bg-transparent px-5 text-support-navy shadow-none',
   'hover:bg-support-tint',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-support-navy/15 focus-visible:ring-offset-2',
   'disabled:text-slate-400 disabled:hover:bg-transparent',
 );
 
+/** Destructive (e.g. cancel RMA) — PPT-style rose, not loud admin red. */
 export const supportButtonDanger = cn(
   supportButtonBase,
-  'min-h-11 rounded-full px-6 py-2.5 text-[0.9375rem] sm:min-h-12 sm:px-7',
-  'bg-red-600 text-white shadow-sm hover:bg-red-700',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/40 focus-visible:ring-offset-2',
-  'disabled:bg-slate-300 disabled:text-white/80 disabled:hover:bg-slate-300',
+  'bg-rose-600 text-white shadow-sm hover:bg-rose-700',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/35 focus-visible:ring-offset-2',
+  'disabled:bg-slate-300 disabled:text-white/90 disabled:shadow-none disabled:hover:bg-slate-300',
+);
+
+/** Dense row actions (wizards / toolbars) — still 44px min. */
+export const supportToolbarBtn = cn(
+  supportButtonSecondary,
+  'px-4 text-xs font-semibold sm:px-5 sm:text-[13px]',
 );
 
 /* ——— Modal ——— */
 export const supportModalBackdrop = 'bg-slate-900/40 backdrop-blur-[2px]';
 
 export const supportModalShell = cn(
-  'flex max-h-[min(92dvh,44rem)] w-full flex-col overflow-hidden',
+  'relative z-10 flex max-h-[min(92dvh,44rem)] w-full flex-col overflow-hidden',
   'rounded-t-[28px] border border-slate-200/80 bg-white',
   'shadow-xl shadow-slate-900/10',
   'sm:max-w-[40rem] sm:rounded-[28px] lg:max-w-[45rem]',
@@ -119,8 +129,15 @@ export const supportModalFooter = cn(
 );
 
 export const supportModalCloseBtn = cn(
-  'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl leading-none text-slate-500',
+  'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl font-light leading-none text-slate-500',
   'hover:bg-slate-100 active:bg-slate-200/80',
+);
+
+/** Order lookup per-digit cells (OrderLookupPage). */
+export const supportOrderLookupDigitCell = cn(
+  supportFontSans,
+  'h-11 w-9 shrink-0 rounded-2xl border border-slate-200 bg-white text-center text-[15px] font-semibold text-support-navy tabular-nums outline-none transition sm:w-10',
+  'focus:border-support-navy focus:ring-2 focus:ring-support-navy/12',
 );
 
 /* ——— Stepper pills ——— */
@@ -234,6 +251,41 @@ export const supportToastInfo = cn(
 export const supportCalloutCard = cn(
   'rounded-2xl border-0 bg-support-tint/50 shadow-none ring-1 ring-support-navy/10',
 );
+
+/** Success / confirmation callout (trade-in, replacement approved). */
+export const supportSuccessCallout = cn(
+  'rounded-2xl border border-support-navy/10 bg-support-tint/70 px-4 py-4 text-center ring-1 ring-support-navy/8',
+);
+
+/* ——— RMA status badges (calm, parent-friendly) ——— */
+export const supportStatusBadgeBase = cn(
+  supportFontSans,
+  'inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ring-inset',
+);
+
+const DEFAULT_BADGE = 'bg-slate-100 text-slate-700 ring-slate-200/80';
+
+/** Tailwind class bundle per internal RMA status key. */
+export const SUPPORT_RMA_STATUS_BADGE: Record<string, string> = {
+  pending: 'bg-slate-100 text-support-navy ring-slate-200/90',
+  awaiting_your_reply: 'bg-amber-50 text-amber-950 ring-amber-200/70',
+  rejected: 'bg-rose-50 text-rose-900 ring-rose-200/75',
+  waiting_for_your_shipment: 'bg-support-tint text-support-navy ring-support-navy/12',
+  shipment_deadline_passed: 'bg-orange-50 text-orange-950 ring-orange-200/70',
+  shipped_by_customer: 'bg-sky-50 text-sky-950 ring-sky-200/70',
+  inspection_in_progress: 'bg-slate-100 text-support-navy ring-slate-200/80',
+  inspection_failed: 'bg-rose-50 text-rose-900 ring-rose-200/75',
+  backorder: 'bg-amber-50/95 text-amber-950 ring-amber-200/65',
+  preparing_shipment: 'bg-support-tint text-support-navy ring-support-navy/12',
+  shipped: 'bg-emerald-50 text-emerald-950 ring-emerald-200/75',
+  return_in_review: 'bg-support-tint/90 text-support-navy ring-support-navy/15',
+  refunded: 'bg-emerald-50/90 text-emerald-950 ring-emerald-200/70',
+  cancelled: 'bg-slate-100 text-slate-600 ring-slate-200/80',
+};
+
+export function supportRmaStatusBadgeClasses(status: string): string {
+  return SUPPORT_RMA_STATUS_BADGE[status] ?? DEFAULT_BADGE;
+}
 
 /* ——— Selection cards (OOS options, etc.) ——— */
 export const supportOptionCard = (selected: boolean) =>

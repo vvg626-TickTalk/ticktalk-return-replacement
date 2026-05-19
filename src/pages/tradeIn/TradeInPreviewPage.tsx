@@ -3,7 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { TradeInSelectWatchModal } from '@/components/tradeIn/TradeInSelectWatchModal';
 import { TRADE_IN_NEW_WATCH_PRODUCT_IDS } from '@/features/tradeIn/tradeInConstants';
 import { loadTradeInDemo, patchTradeInDemo, seedTradeInFromAppEntry } from '@/features/tradeIn/tradeInDemoStorage';
-import { supportBodySmall, supportButtonPrimary, supportLinkSubtle, supportModalTitle } from '@/ui/supportTheme';
+import {
+  supportBodySmall,
+  supportButtonPrimary,
+  supportLinkSubtle,
+  supportModalTitle,
+  supportSuccessCallout,
+} from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
 const STEPS = [
@@ -38,8 +44,8 @@ export function TradeInPreviewPage() {
 
   return (
     <div className="mx-auto max-w-md space-y-5 pb-10">
-      <div className="rounded-2xl border border-teal-100 bg-teal-50/50 px-4 py-4 text-center ring-1 ring-teal-100/80">
-        <p className="text-xs font-semibold uppercase tracking-wide text-teal-900/80">Trade-in approved!</p>
+      <div className={cn(supportSuccessCallout, 'text-center')}>
+        <p className="text-xs font-semibold uppercase tracking-wide text-support-navy/85">Trade-in approved!</p>
         <p className={cn(supportModalTitle, 'mt-2 text-lg')}>Trade-in Credit {credit}</p>
       </div>
 
@@ -53,7 +59,7 @@ export function TradeInPreviewPage() {
       </div>
 
       <section id="how" className="scroll-mt-20 rounded-2xl border border-slate-200 bg-white p-4">
-        <h2 className="text-sm font-bold text-support-navy">How to trade-in?</h2>
+        <h2 className="text-sm font-semibold text-support-navy">How to trade-in?</h2>
         <p className={cn(supportBodySmall, 'mt-2 font-semibold text-slate-800')}>5 Simple Steps:</p>
         <ol className="mt-3 list-decimal space-y-2 pl-4 text-sm leading-snug text-slate-700">
           {STEPS.map((s, i) => (
@@ -63,7 +69,7 @@ export function TradeInPreviewPage() {
       </section>
 
       <section id="terms" className="scroll-mt-20 rounded-2xl border border-slate-200 bg-white p-4">
-        <h2 className="text-sm font-bold text-support-navy">Terms and Policies</h2>
+        <h2 className="text-sm font-semibold text-support-navy">Terms and Policies</h2>
         <ul className="mt-2 space-y-1.5 text-xs leading-snug text-slate-600">
           <li>Credit is estimated until we inspect your device.</li>
           <li>Device must match the IMEI you submitted; erase data before shipping.</li>

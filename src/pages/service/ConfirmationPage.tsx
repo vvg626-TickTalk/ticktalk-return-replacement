@@ -23,7 +23,7 @@ export function ConfirmationPage() {
       />
 
       <Card>
-        <p className="text-sm font-semibold text-brand-ink">RMA #TT-5099 (demo)</p>
+        <p className="text-sm font-semibold text-support-navy">RMA #TT-5099 (demo)</p>
         <p className="mt-2 text-sm text-slate-600">
           Next: email/SMS copy, operational follow-up, and inventory checks—see docs/user-flows.md.
         </p>

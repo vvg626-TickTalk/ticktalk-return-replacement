@@ -38,17 +38,17 @@ export function AdminRmaDetailPage() {
       <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Kind</p>
-          <p className="mt-2 text-sm font-semibold capitalize text-brand-ink">{rma.kind.replace('_', ' ')}</p>
+          <p className="mt-2 text-sm font-semibold capitalize text-support-navy">{rma.kind.replace('_', ' ')}</p>
         </div>
         <StatusBadge status={rma.status} />
       </Card>
 
       <Card>
-        <p className="text-sm font-semibold text-brand-ink">Linked order</p>
+        <p className="text-sm font-semibold text-support-navy">Linked order</p>
         <p className="mt-2 font-mono text-sm text-slate-700">{rma.orderId}</p>
         {order ? (
           <div className="mt-3 text-sm">
-            <Link className="font-semibold text-teal-900 hover:underline" to={`/service/order/${order.id}`}>
+            <Link className="font-semibold text-support-navy hover:underline" to={`/service/order/${order.id}`}>
               Preview customer order page
             </Link>
           </div>
@@ -56,7 +56,7 @@ export function AdminRmaDetailPage() {
       </Card>
 
       <Card className="border-dashed">
-        <p className="text-sm font-semibold text-brand-ink">Next implementation steps</p>
+        <p className="text-sm font-semibold text-support-navy">Next implementation steps</p>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-700">
           <li>State transition buttons with guardrails</li>
           <li>Message thread + templates</li>

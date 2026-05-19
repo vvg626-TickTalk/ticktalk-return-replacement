@@ -12,7 +12,7 @@
   }
 
   body {
-    @apply font-sans text-brand-ink antialiased;
+    @apply font-sans text-support-navy antialiased;
     text-rendering: optimizeLegibility;
   }
 

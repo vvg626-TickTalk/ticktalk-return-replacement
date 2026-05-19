@@ -15,6 +15,13 @@ import {
   sanitizeCellChar,
   totalCellCount,
 } from '@/pages/service/orderLookupFormat';
+import {
+  supportButtonPrimary,
+  supportField,
+  supportOrderLookupDigitCell,
+  supportPanel,
+  supportPageTitle,
+} from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
 function cellInputMode(kind: 'digits' | 'letters' | 'alphanumeric'): 'numeric' | 'text' {
@@ -149,10 +156,7 @@ export function OrderLookupPage() {
               spellCheck={false}
               maxLength={1}
               aria-label={`Order character ${idx + 1} of ${total}`}
-              className={cn(
-                'h-10 w-9 shrink-0 rounded-md border border-slate-300 bg-white text-center text-[15px] font-semibold text-brand-ink tabular-nums outline-none transition',
-                'focus:border-support-navy focus:ring-2 focus:ring-support-navy/15',
-              )}
+              className={supportOrderLookupDigitCell}
               value={cells[idx] ?? ''}
               onChange={(e) => setCellValue(idx, e.target.value)}
               onKeyDown={(e) => onCellKeyDown(idx, e)}
@@ -189,9 +193,7 @@ export function OrderLookupPage() {
           </Link>
         </div>
 
-        <h1 className="text-center text-2xl font-semibold tracking-tight text-brand-ink sm:text-[1.75rem]">
-          Start Your Request
-        </h1>
+        <h1 className={cn(supportPageTitle, 'text-center')}>Start Your Request</h1>
 
         <div className="mt-8">
           <label htmlFor="order-lookup-channel" className="sr-only">
@@ -201,7 +203,7 @@ export function OrderLookupPage() {
             id="order-lookup-channel"
             value={channelId}
             onChange={(e) => onChannelChange(e.target.value as ChannelId)}
-            className="h-12 w-full rounded-lg border border-slate-300 bg-white px-4 text-[15px] font-medium text-brand-ink outline-none focus:border-support-navy focus:ring-2 focus:ring-support-navy/15"
+            className={cn(supportField, 'h-12 cursor-pointer font-medium')}
           >
             {ORDER_LOOKUP_CHANNELS.map((ch) => (
               <option key={ch.id} value={ch.id}>
@@ -212,11 +214,11 @@ export function OrderLookupPage() {
         </div>
 
         <form onSubmit={onSubmit} className="mt-8">
-          <div className="rounded-xl border border-slate-200 bg-white px-5 py-6 sm:px-8 sm:py-7">
+          <div className={cn(supportPanel, 'px-5 py-6 sm:px-8 sm:py-7')}>
             <p className="text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{format.label}</p>
 
             <div className="mt-6 flex items-center justify-center gap-1">
-              <span className="text-sm font-semibold text-brand-ink">Enter Order Number</span>
+              <span className="text-sm font-semibold text-support-navy">Enter Order Number</span>
               <button
                 type="button"
                 onClick={() => setHelpOpen(true)}
@@ -251,7 +253,7 @@ export function OrderLookupPage() {
                 type="text"
                 autoComplete="postal-code"
                 placeholder="Enter Shipping ZIP Code"
-                className="h-12 w-full rounded-lg border border-slate-300 bg-white px-4 text-center text-[15px] text-brand-ink outline-none placeholder:text-slate-400 focus:border-support-navy focus:ring-2 focus:ring-support-navy/15"
+                className={cn(supportField, 'text-center')}
                 value={postal}
                 onChange={(e) => setPostal(e.target.value)}
               />
@@ -264,16 +266,7 @@ export function OrderLookupPage() {
             ) : null}
 
             <div className="mt-8 flex justify-center">
-              <button
-                type="submit"
-                disabled={!canSubmit}
-                className={cn(
-                  'min-h-11 rounded-full px-14 text-sm font-semibold transition',
-                  canSubmit
-                    ? 'bg-support-navy text-white hover:bg-support-navy-hover'
-                    : 'cursor-not-allowed bg-slate-200 text-slate-500',
-                )}
-              >
+              <button type="submit" disabled={!canSubmit} className={cn(supportButtonPrimary, 'px-14')}>
                 Next
               </button>
             </div>
@@ -285,7 +278,7 @@ export function OrderLookupPage() {
             <button
               type="button"
               onClick={() => setHelpOpen(false)}
-              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-lg text-slate-500 hover:bg-white hover:text-brand-ink"
+              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-lg text-slate-500 hover:bg-white hover:text-support-navy"
               aria-label="Close help"
             >
               ×
@@ -298,7 +291,7 @@ export function OrderLookupPage() {
                 i
               </span>
               <div>
-                <h2 className="text-base font-semibold text-brand-ink">{HELP_PANEL_TITLE}</h2>
+                <h2 className="text-base font-semibold text-support-navy">{HELP_PANEL_TITLE}</h2>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">{format.helpBody}</p>
               </div>
             </div>

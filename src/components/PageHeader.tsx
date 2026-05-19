@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { supportBodySmall, supportEyebrow, supportPageTitle } from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
 export type PageHeaderProps = {
@@ -25,19 +26,9 @@ export function PageHeader({
       )}
     >
       <div className="max-w-xl space-y-2 sm:space-y-2.5">
-        {eyebrow ? (
-          <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-teal-800/85">
-            {eyebrow}
-          </p>
-        ) : null}
-        <h1 className="text-balance text-[1.375rem] font-semibold leading-tight tracking-tight text-brand-ink sm:text-[1.75rem]">
-          {title}
-        </h1>
-        {description ? (
-          <p className="max-w-md text-pretty text-sm leading-normal text-slate-600 sm:text-[0.9375rem]">
-            {description}
-          </p>
-        ) : null}
+        {eyebrow ? <p className={supportEyebrow}>{eyebrow}</p> : null}
+        <h1 className={supportPageTitle}>{title}</h1>
+        {description ? <p className={cn(supportBodySmall, 'max-w-md text-pretty sm:text-[15px]')}>{description}</p> : null}
       </div>
       {actions ? (
         <div className="flex flex-wrap gap-2 sm:min-w-[7rem] sm:justify-end">{actions}</div>

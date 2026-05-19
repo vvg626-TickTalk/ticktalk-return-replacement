@@ -21,22 +21,22 @@ export function AdminDashboardPage() {
         {kpis.map((k) => (
           <Card key={k.label}>
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{k.label}</p>
-            <p className="mt-2 text-3xl font-semibold text-brand-ink">{k.value}</p>
+            <p className="mt-2 text-3xl font-semibold text-support-navy">{k.value}</p>
             <p className="mt-1 text-xs text-slate-600">{k.hint}</p>
           </Card>
         ))}
       </section>
 
       <Card>
-        <p className="text-sm font-semibold text-brand-ink">Quick links</p>
+        <p className="text-sm font-semibold text-support-navy">Quick links</p>
         <ul className="mt-3 space-y-2 text-sm">
           <li>
-            <Link className="font-semibold text-teal-900 hover:underline" to="/admin/messages">
+            <Link className="font-semibold text-support-navy hover:underline" to="/admin/messages">
               Messages inbox
             </Link>
           </li>
           <li>
-            <Link className="font-semibold text-teal-900 hover:underline" to="/admin/inventory">
+            <Link className="font-semibold text-support-navy hover:underline" to="/admin/inventory">
               Inventory overview
             </Link>
           </li>

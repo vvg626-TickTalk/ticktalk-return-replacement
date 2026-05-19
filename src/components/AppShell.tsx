@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
+import { supportButtonPrimary } from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
 export type AppShellMode = 'marketing' | 'service' | 'account' | 'admin';
@@ -29,7 +30,7 @@ function TickTalkMark({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'flex h-9 w-9 items-center justify-center rounded-2xl bg-brand-night text-xs font-black tracking-tight text-white',
+        'flex h-9 w-9 items-center justify-center rounded-xl bg-support-navy text-xs font-black tracking-tight text-white',
         className,
       )}
       aria-hidden
@@ -50,9 +51,9 @@ function HeaderLink({
       end={item.end}
       className={({ isActive }) =>
         cn(
-          'rounded-xl px-3 py-2.5 text-sm font-semibold transition min-h-10 inline-flex items-center',
+          'inline-flex min-h-11 items-center rounded-full px-4 py-2 text-sm font-semibold transition',
           isActive
-            ? 'bg-white text-brand-ink ring-1 ring-brand-line shadow-sm'
+            ? 'bg-white text-support-navy ring-1 ring-brand-line shadow-sm'
             : 'text-slate-700 hover:bg-black/[0.04]',
         )
       }
@@ -69,15 +70,12 @@ function MarketingTopBar() {
         <Link to="/" className="flex items-center gap-3">
           <TickTalkMark />
           <div className="leading-tight">
-            <p className="text-sm font-semibold text-brand-ink">TickTalk</p>
+            <p className="text-sm font-semibold text-support-navy">TickTalk</p>
             <p className="text-xs text-slate-600">Service portal (demo)</p>
           </div>
         </Link>
         <div className="flex items-center gap-2">
-          <Link
-            to="/service"
-            className="rounded-xl bg-brand-night px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-ink"
-          >
+          <Link to="/service" className={cn(supportButtonPrimary, 'text-sm')}>
             Start a request
           </Link>
         </div>
@@ -105,7 +103,7 @@ function ShellTopBar({
             <Link to={mode === 'admin' ? '/admin' : '/service'} className="flex items-center gap-3">
               <TickTalkMark />
               <div className="leading-tight">
-                <p className="text-sm font-semibold text-brand-ink">
+                <p className="text-sm font-semibold text-support-navy">
                   {mode === 'admin' ? 'TickTalk Admin' : 'TickTalk Service'}
                 </p>
                 <p className="text-xs text-slate-600">
@@ -161,7 +159,7 @@ function AdminSidebar() {
                 cn(
                   'block rounded-xl px-3 py-2 text-sm font-semibold transition',
                   isActive
-                    ? 'bg-brand-mist text-brand-ink ring-1 ring-brand-line'
+                    ? 'bg-brand-mist text-support-navy ring-1 ring-brand-line'
                     : 'text-slate-700 hover:bg-black/[0.04]',
                 )
               }
@@ -172,7 +170,7 @@ function AdminSidebar() {
         </div>
 
         <div className="rounded-2xl bg-brand-mist p-3 text-xs text-slate-600">
-          <p className="font-semibold text-brand-ink">Demo data only</p>
+          <p className="font-semibold text-support-navy">Demo data only</p>
           <p className="mt-1 leading-relaxed">No real orders, codes, or inventory.</p>
         </div>
       </div>

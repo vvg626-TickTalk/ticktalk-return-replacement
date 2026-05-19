@@ -12,7 +12,7 @@ export function WizardStickyActions({
   return (
     <div
       className={cn(
-        'fixed inset-x-0 bottom-0 z-20 border-t border-slate-200/90 bg-white/92 px-4 py-3 shadow-[0_-8px_32px_rgba(15,23,42,0.08)] backdrop-blur-md sm:relative sm:inset-auto sm:z-0 sm:mt-8 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none',
+        'fixed inset-x-0 bottom-0 z-20 border-t border-slate-100/90 bg-white/95 px-4 py-3 shadow-[0_-6px_24px_rgba(7,27,83,0.06)] backdrop-blur-md sm:relative sm:inset-auto sm:z-0 sm:mt-8 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none',
         'pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-0',
         className,
       )}

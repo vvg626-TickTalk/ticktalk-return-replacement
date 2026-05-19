@@ -25,7 +25,7 @@ export function AdminReturnsPage() {
             {rows.map((r) => (
               <tr key={r.id} className="rounded-2xl bg-brand-mist/40 ring-1 ring-brand-line">
                 <td className="px-3 py-3 font-mono">
-                  <Link className="font-semibold text-teal-900 hover:underline" to={`/admin/rma/${r.id}`}>
+                  <Link className="font-semibold text-support-navy hover:underline" to={`/admin/rma/${r.id}`}>
                     {r.code}
                   </Link>
                 </td>

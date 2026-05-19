@@ -12,7 +12,7 @@ export function AdminTradeInsPage() {
           <Card key={t.id}>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-brand-ink">
+                <p className="text-sm font-semibold text-support-navy">
                   {t.brand} {t.imei ? <span className="font-mono text-slate-700">· {t.imei}</span> : null}
                 </p>
                 <p className="text-xs text-slate-600">

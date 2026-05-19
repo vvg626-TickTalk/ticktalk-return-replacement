@@ -23,14 +23,14 @@ export function PreviewPage() {
       />
 
       <Card>
-        <p className="text-sm font-semibold text-brand-ink">Items</p>
+        <p className="text-sm font-semibold text-support-navy">Items</p>
         <div className="mt-3 space-y-3">
           {product ? <ProductCard product={product} meta="Replacement · mock" right="Remove (later)" /> : null}
         </div>
       </Card>
 
       <Card>
-        <p className="text-sm font-semibold text-brand-ink">Ship-from / contact</p>
+        <p className="text-sm font-semibold text-support-navy">Ship-from / contact</p>
         <p className="mt-2 text-sm text-slate-600">Placeholder fields. Phone normalization (strip symbols) is a backend+UI task.</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="rounded-2xl border border-brand-line bg-brand-mist/40 p-3 text-sm text-slate-700">

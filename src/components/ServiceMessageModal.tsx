@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
+import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
+import { supportBody } from '@/ui/supportTheme';
 
 export function ServiceMessageModal({
   open,
@@ -20,29 +22,21 @@ export function ServiceMessageModal({
     primaryAction || secondaryAction ? (
       <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         {secondaryAction ? (
-          <button
-            type="button"
-            onClick={secondaryAction.onClick}
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-support-navy bg-white px-6 text-sm font-semibold text-support-navy hover:bg-support-tint"
-          >
+          <Button variant="secondary" onClick={secondaryAction.onClick} className="w-full sm:w-auto">
             {secondaryAction.label}
-          </button>
+          </Button>
         ) : null}
         {primaryAction ? (
-          <button
-            type="button"
-            onClick={primaryAction.onClick}
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-support-navy px-6 text-sm font-semibold text-white hover:bg-support-navy-hover"
-          >
+          <Button onClick={primaryAction.onClick} className="w-full sm:w-auto">
             {primaryAction.label}
-          </button>
+          </Button>
         ) : null}
       </div>
     ) : null;
 
   return (
     <Modal open={open} onClose={onClose} title={title ?? ''} description={undefined} footer={footer}>
-      <p className="text-[15px] leading-6 text-slate-600">{message}</p>
+      <p className={supportBody}>{message}</p>
     </Modal>
   );
 }

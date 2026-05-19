@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Modal } from '@/components/Modal';
 import { isPlausibleImei, normalizeImei } from '@/features/replacement/eligibility';
-import { supportButtonPrimary, supportButtonSecondary, supportFieldMono } from '@/ui/supportTheme';
+import { supportButtonPrimary, supportButtonSecondary, supportFieldMono, supportLabel } from '@/ui/supportTheme';
 import { cn } from '@/utils/cn';
 
 type Phase = 'enter' | 'unknown' | 'invalid';
@@ -82,7 +82,7 @@ export function WatchImeiModal({ open, onClose, onConfirm }: WatchImeiModalProps
             already paired, open the Parent App and go to Parent Portal to view the IMEI.
           </p>
           <div className="space-y-1.5">
-            <label htmlFor="watch-imei-input" className="text-[13px] font-medium text-slate-800">
+            <label htmlFor="watch-imei-input" className={supportLabel}>
               Watch IMEI
             </label>
             <input

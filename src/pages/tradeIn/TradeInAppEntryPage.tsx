@@ -51,7 +51,7 @@ export function TradeInAppEntryPage() {
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex gap-3">
-          <div className="h-14 w-14 shrink-0 rounded-2xl bg-teal-400 ring-1 ring-slate-200/80" aria-hidden />
+          <div className="h-14 w-14 shrink-0 rounded-2xl bg-support-tint ring-1 ring-support-navy/15" aria-hidden />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-slate-900">{d.deviceName}</p>
             <p className="mt-0.5 font-mono text-xs text-slate-600">IMEI {d.imei}</p>
