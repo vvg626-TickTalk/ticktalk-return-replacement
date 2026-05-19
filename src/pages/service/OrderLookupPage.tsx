@@ -1,182 +1,116 @@
 import type { ClipboardEvent, FormEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { orders } from '@/mock-data';
 import {
+  type CellGroupSpec,
   type ChannelId,
+  HELP_PANEL_TITLE,
   ORDER_LOOKUP_BY_ID,
   ORDER_LOOKUP_CHANNELS,
   composeExternalOrderRef,
-  emptyPartsForChannel,
+  distributePastedOrderToCells,
+  emptyCellsForChannel,
   orderEntryComplete,
-  parsePastedOrderRef,
-  sanitizeFlexNumeric,
-  sanitizeSegment,
+  sanitizeCellChar,
+  totalCellCount,
 } from '@/pages/service/orderLookupFormat';
 import { cn } from '@/utils/cn';
 
-type Phase = 'channel' | 'details';
-
-function segmentInputMode(kind: 'digits' | 'letters' | 'alphanumeric'): 'numeric' | 'text' {
+function cellInputMode(kind: 'digits' | 'letters' | 'alphanumeric'): 'numeric' | 'text' {
   return kind === 'digits' ? 'numeric' : 'text';
 }
 
-function HelpBubble({
-  open,
-  title,
-  body,
-  onClose,
-}: {
-  open: boolean;
-  title: string;
-  body: string;
-  onClose: () => void;
-}) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-
-  if (!open) return null;
-
+function Separator({ type }: { type: 'dash' | 'dot' }) {
+  if (type === 'dot') {
+    return (
+      <span className="mx-1 flex h-10 shrink-0 items-center text-lg font-semibold leading-none text-slate-400" aria-hidden>
+        ·
+      </span>
+    );
+  }
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <button
-        type="button"
-        aria-label="Close help"
-        className="absolute inset-0 bg-brand-ink/35 backdrop-blur-[2px]"
-        onClick={onClose}
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="order-lookup-help-title"
-        className="relative z-10 m-0 w-full max-w-md rounded-t-3xl border border-slate-200/90 bg-white px-6 py-5 shadow-2xl shadow-brand-ink/10 sm:m-4 sm:rounded-3xl"
-      >
-        <div className="flex items-start justify-between gap-3">
-          <h2 id="order-lookup-help-title" className="text-base font-semibold leading-snug text-support-navy">
-            {title}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="-mr-1 -mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xl leading-none text-slate-400 transition hover:bg-support-tint hover:text-support-navy"
-            aria-label="Close"
-          >
-            ×
-          </button>
-        </div>
-        <p className="mt-4 text-sm leading-relaxed text-slate-600">{body}</p>
-      </div>
-    </div>
+    <span className="mx-1 flex h-10 shrink-0 items-center text-lg font-light text-slate-400" aria-hidden>
+      –
+    </span>
   );
 }
 
-const cardShell =
-  'w-full max-w-md rounded-[28px] border border-slate-200/80 bg-white px-6 py-8 shadow-xl shadow-slate-900/8 sm:px-10';
-
-const ctaBase =
-  'inline-flex min-h-12 w-full items-center justify-center rounded-full px-8 text-sm font-semibold transition sm:w-auto';
-
 export function OrderLookupPage() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState<Phase>('channel');
   const [channelId, setChannelId] = useState<ChannelId>('myticktalk');
-  const [parts, setParts] = useState<string[]>(() => emptyPartsForChannel('myticktalk'));
+  const [cells, setCells] = useState<string[]>(() => emptyCellsForChannel('myticktalk'));
   const [postal, setPostal] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [helpOpen, setHelpOpen] = useState(false);
 
-  const segmentInputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const flexInputRef = useRef<HTMLInputElement | null>(null);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const format = ORDER_LOOKUP_BY_ID[channelId];
+  const total = totalCellCount(format);
 
-  const focusFirstEntry = useCallback(() => {
-    queueMicrotask(() => {
-      if (format.flexNumeric) {
-        flexInputRef.current?.focus();
-        return;
+  const kindAtIndex = useCallback(
+    (index: number) => {
+      let o = 0;
+      for (const g of format.cellGroups) {
+        if (index < o + g.boxCount) return g.kind;
+        o += g.boxCount;
       }
-      segmentInputRefs.current[0]?.focus();
-    });
-  }, [format.flexNumeric]);
-
-  const setPart = useCallback(
-    (index: number, value: string) => {
-      const fmt = ORDER_LOOKUP_BY_ID[channelId];
-      if (fmt.flexNumeric) {
-        const next = sanitizeFlexNumeric(value, fmt.flexNumeric);
-        setParts(() => [next]);
-        return;
-      }
-      const segments = fmt.segments;
-      if (!segments?.[index]) return;
-      const next = sanitizeSegment(value, segments[index]);
-      setParts((prev) => {
-        const copy = [...prev];
-        copy[index] = next;
-        while (copy.length < segments.length) copy.push('');
-        return copy;
-      });
-      if (next.length === segments[index].maxLength && index < segments.length - 1) {
-        queueMicrotask(() => segmentInputRefs.current[index + 1]?.focus());
-      }
+      return format.cellGroups[0]!.kind;
     },
-    [channelId],
+    [format],
   );
 
-  const goToDetails = () => {
-    setParts(emptyPartsForChannel(channelId));
-    setPostal('');
+  const setCellValue = useCallback(
+    (index: number, raw: string) => {
+      const kind = kindAtIndex(index);
+      const next = sanitizeCellChar(raw, kind);
+      setCells((prev) => {
+        const copy = [...prev];
+        copy[index] = next;
+        return copy;
+      });
+      if (next && index < total - 1) {
+        queueMicrotask(() => inputRefs.current[index + 1]?.focus());
+      }
+    },
+    [kindAtIndex, total],
+  );
+
+  const onChannelChange = (id: ChannelId) => {
+    setChannelId(id);
+    setCells(emptyCellsForChannel(id));
     setError(undefined);
-    setPhase('details');
-    focusFirstEntry();
+    queueMicrotask(() => inputRefs.current[0]?.focus());
   };
 
-  const backToChannel = () => {
-    setPhase('channel');
-    setParts(emptyPartsForChannel(channelId));
-    setPostal('');
-    setError(undefined);
-    setHelpOpen(false);
-  };
-
-  const onSegmentKeyDown = (index: number, e: ReactKeyboardEvent<HTMLInputElement>) => {
+  const onCellKeyDown = (index: number, e: ReactKeyboardEvent<HTMLInputElement>) => {
     if (e.key !== 'Backspace') return;
-    if (parts[index]) return;
+    const cur = cells[index] ?? '';
+    if (cur) return;
     if (index > 0) {
       e.preventDefault();
-      segmentInputRefs.current[index - 1]?.focus();
+      setCells((prev) => {
+        const copy = [...prev];
+        copy[index - 1] = '';
+        return copy;
+      });
+      queueMicrotask(() => inputRefs.current[index - 1]?.focus());
     }
   };
 
-  const onPasteCapture = (e: ClipboardEvent) => {
-    if (phase !== 'details') return;
+  const onPasteRow = (e: ClipboardEvent) => {
     const text = e.clipboardData.getData('text');
-    const parsed = parsePastedOrderRef(channelId, text);
+    const parsed = distributePastedOrderToCells(channelId, text);
     if (!parsed) return;
     e.preventDefault();
-    setParts(parsed);
-    const fmt = ORDER_LOOKUP_BY_ID[channelId];
-    if (fmt.flexNumeric) {
-      queueMicrotask(() => flexInputRef.current?.focus());
-      return;
-    }
-    const segments = fmt.segments ?? [];
-    const firstShort = parsed.findIndex((p, i) => p.length < (segments[i]?.maxLength ?? 0));
-    const focusIdx = firstShort === -1 ? parsed.length - 1 : firstShort;
-    queueMicrotask(() => segmentInputRefs.current[focusIdx]?.focus());
+    setCells(parsed);
+    const last = parsed.reduce((acc, c, i) => (c ? i : acc), -1);
+    queueMicrotask(() => inputRefs.current[Math.min(last + 1, total - 1)]?.focus());
   };
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (phase === 'channel') return;
-
-    const trimmedRef = composeExternalOrderRef(channelId, parts);
+    const trimmedRef = composeExternalOrderRef(channelId, cells);
     const trimmedPostal = postal.trim();
     const match = orders.find(
       (o) => o.channel === channelId && o.externalOrderRef === trimmedRef && o.shippingPostal === trimmedPostal,
@@ -191,201 +125,185 @@ export function OrderLookupPage() {
     navigate(`/service/order/${match.id}`);
   };
 
-  const orderComplete = orderEntryComplete(channelId, parts);
-  const canSubmit = phase === 'details' && orderComplete && postal.trim().length > 0;
+  const entryOk = orderEntryComplete(channelId, cells);
+  const canSubmit = entryOk && postal.trim().length > 0;
 
-  const isFlex = Boolean(format.flexNumeric);
+  useEffect(() => {
+    inputRefs.current.length = total;
+  }, [total, channelId]);
+
+  const renderGroup = (group: CellGroupSpec, groupIndex: number, startIdx: number) => {
+    const cellsSlice = (
+      <>
+        {Array.from({ length: group.boxCount }, (_, j) => {
+          const idx = startIdx + j;
+          return (
+            <input
+              key={idx}
+              ref={(el) => {
+                inputRefs.current[idx] = el;
+              }}
+              type="text"
+              inputMode={cellInputMode(group.kind)}
+              autoComplete="off"
+              spellCheck={false}
+              maxLength={1}
+              aria-label={`Order character ${idx + 1} of ${total}`}
+              className={cn(
+                'h-10 w-9 shrink-0 rounded-md border border-slate-300 bg-white text-center text-[15px] font-semibold text-brand-ink tabular-nums outline-none transition',
+                'focus:border-support-navy focus:ring-2 focus:ring-support-navy/15',
+              )}
+              value={cells[idx] ?? ''}
+              onChange={(e) => setCellValue(idx, e.target.value)}
+              onKeyDown={(e) => onCellKeyDown(idx, e)}
+            />
+          );
+        })}
+      </>
+    );
+
+    if (groupIndex === 0) return <Fragment key={`g-${groupIndex}`}>{cellsSlice}</Fragment>;
+
+    const sep = format.betweenGroupSep === 'dot' ? 'dot' : 'dash';
+    return (
+      <Fragment key={`g-${groupIndex}`}>
+        <Separator type={sep} />
+        {cellsSlice}
+      </Fragment>
+    );
+  };
+
+  let runningIndex = 0;
+  const boxRow = format.cellGroups.map((group, gi) => {
+    const start = runningIndex;
+    runningIndex += group.boxCount;
+    return renderGroup(group, gi, start);
+  });
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-brand-mist">
-      <div className="mx-auto flex min-h-[inherit] w-full max-w-lg flex-col items-center justify-center px-4 py-10 sm:py-14">
-        {phase === 'channel' ? (
-          <div className={cardShell}>
-            <button
-              type="button"
-              onClick={() => navigate('/service')}
-              className="mb-6 text-sm font-medium text-slate-500 transition hover:text-support-navy"
-            >
-              ← Back
-            </button>
+    <div className="min-h-[calc(100vh-4rem)] bg-white">
+      <div className="mx-auto w-full max-w-4xl px-6 py-8 sm:px-10 sm:py-10">
+        <div className="mb-2">
+          <Link to="/service" className="text-sm font-medium text-support-navy hover:underline">
+            ← Back
+          </Link>
+        </div>
 
-            <h1 className="text-center text-xl font-semibold tracking-tight text-brand-ink sm:text-[1.375rem]">
-              Where did you purchase?
-            </h1>
-            <p className="mx-auto mt-3 max-w-sm text-center text-[15px] leading-relaxed text-slate-600">
-              Choose your store. You’ll enter your order number on the next step.
-            </p>
+        <h1 className="text-center text-2xl font-semibold tracking-tight text-brand-ink sm:text-[1.75rem]">
+          Start Your Request
+        </h1>
 
-            <ul className="mt-8 space-y-3" role="radiogroup" aria-label="Purchase channel">
-              {ORDER_LOOKUP_CHANNELS.map((ch) => {
-                const selected = channelId === ch.id;
-                return (
-                  <li key={ch.id}>
-                    <button
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      onClick={() => setChannelId(ch.id)}
-                      className={cn(
-                        'flex w-full items-center gap-4 rounded-2xl border px-4 py-4 text-left transition',
-                        selected
-                          ? 'border-support-navy/30 bg-support-tint/60 ring-2 ring-support-navy/20'
-                          : 'border-slate-200/90 bg-white hover:border-slate-300',
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2',
-                          selected ? 'border-support-navy bg-support-navy' : 'border-slate-300 bg-white',
-                        )}
-                        aria-hidden
-                      >
-                        {selected ? <span className="h-2 w-2 rounded-full bg-white" /> : null}
-                      </span>
-                      <span className={cn('text-[15px] font-medium', selected ? 'text-brand-ink' : 'text-slate-800')}>
-                        {ch.label}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+        <div className="mt-8">
+          <label htmlFor="order-lookup-channel" className="sr-only">
+            Where did you purchase
+          </label>
+          <select
+            id="order-lookup-channel"
+            value={channelId}
+            onChange={(e) => onChannelChange(e.target.value as ChannelId)}
+            className="h-12 w-full rounded-lg border border-slate-300 bg-white px-4 text-[15px] font-medium text-brand-ink outline-none focus:border-support-navy focus:ring-2 focus:ring-support-navy/15"
+          >
+            {ORDER_LOOKUP_CHANNELS.map((ch) => (
+              <option key={ch.id} value={ch.id}>
+                {ch.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
-            <div className="mt-10 flex justify-center">
+        <form onSubmit={onSubmit} className="mt-8">
+          <div className="rounded-xl border border-slate-200 bg-white px-5 py-6 sm:px-8 sm:py-7">
+            <p className="text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{format.label}</p>
+
+            <div className="mt-6 flex items-center justify-center gap-1">
+              <span className="text-sm font-semibold text-brand-ink">Enter Order Number</span>
               <button
                 type="button"
-                onClick={goToDetails}
-                className={cn(ctaBase, 'bg-support-navy text-white shadow-md shadow-support-navy/15 hover:bg-support-navy-hover')}
+                onClick={() => setHelpOpen(true)}
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 bg-white text-xs font-bold text-support-navy hover:bg-support-tint"
+                aria-label="Help: how to find your order number"
               >
-                Continue
+                ?
               </button>
             </div>
-          </div>
-        ) : (
-          <form className={cardShell} onSubmit={onSubmit}>
-            <button
-              type="button"
-              onClick={backToChannel}
-              className="mb-6 text-sm font-medium text-slate-500 transition hover:text-support-navy"
-            >
-              ← Change store
-            </button>
 
-            <p className="text-center text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{format.label}</p>
-            <h2 className="mt-2 text-center text-xl font-semibold text-brand-ink">Find your order</h2>
-
-            <fieldset className="mt-8 border-0 p-0">
-              <legend className="mx-auto mb-6 flex w-full items-center justify-center gap-2 text-center">
-                <span className="text-sm font-medium text-slate-700">Order number</span>
-                <button
-                  type="button"
-                  onClick={() => setHelpOpen(true)}
-                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-xs font-semibold text-support-navy shadow-sm hover:bg-support-tint"
-                  aria-label="Where do I find my order number?"
-                >
-                  ?
-                </button>
-              </legend>
-
-              <div onPasteCapture={onPasteCapture}>
-                {isFlex && format.flexNumeric ? (
-                  <div className="rounded-2xl border border-slate-200/95 bg-slate-50/40 px-4 py-3 ring-1 ring-slate-100 focus-within:border-support-navy/35 focus-within:bg-white focus-within:ring-support-navy/15">
-                    <input
-                      ref={flexInputRef}
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="off"
-                      aria-label="myticktalk.com order number, 5 to 7 digits"
-                      maxLength={format.flexNumeric.maxDigits}
-                      placeholder="Enter 5–7 digits"
-                      className="w-full border-0 bg-transparent text-center text-2xl font-semibold tabular-nums tracking-wider text-brand-ink outline-none placeholder:text-slate-400 placeholder:text-lg sm:text-[1.75rem]"
-                      value={parts[0] ?? ''}
-                      onChange={(e) => setPart(0, e.target.value)}
-                    />
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-3 py-2 sm:gap-x-1.5">
-                    {(format.segments ?? []).map((def, i) => (
-                      <Fragment key={i}>
-                        {i > 0 ? (
-                          <span className="mx-0.5 select-none text-xl font-light text-slate-300" aria-hidden>
-                            {format.join === 'dashes' ? '–' : '·'}
-                          </span>
-                        ) : null}
-                        <div
-                          className={cn(
-                            'flex min-h-[3rem] min-w-0 flex-1 items-center justify-center rounded-xl border px-2 transition',
-                            'border-slate-200/95 bg-white shadow-sm focus-within:border-support-navy/40 focus-within:ring-2 focus-within:ring-support-navy/15',
-                            def.maxLength >= 10 ? 'basis-[62%] sm:basis-auto' : 'basis-[26%] sm:basis-auto',
-                          )}
-                          style={{ minWidth: `${Math.max(2.75, def.maxLength * 0.58 + 1.5)}rem` }}
-                        >
-                          <input
-                            ref={(el) => {
-                              segmentInputRefs.current[i] = el;
-                            }}
-                            type="text"
-                            inputMode={segmentInputMode(def.kind)}
-                            autoComplete="off"
-                            autoCapitalize={def.kind === 'digits' ? 'off' : 'characters'}
-                            spellCheck={false}
-                            aria-label={`Order number part ${i + 1} of ${format.segments?.length ?? 0}`}
-                            maxLength={def.maxLength}
-                            className="w-full min-w-0 border-0 bg-transparent text-center font-mono text-base tabular-nums tracking-wide text-brand-ink outline-none placeholder:text-slate-300"
-                            value={parts[i] ?? ''}
-                            onChange={(e) => setPart(i, e.target.value)}
-                            onKeyDown={(e) => onSegmentKeyDown(i, e)}
-                          />
-                        </div>
-                      </Fragment>
-                    ))}
-                  </div>
-                )}
+            <fieldset className="mt-4 border-0 p-0">
+              <legend className="sr-only">Order number entry</legend>
+              <div
+                className="flex flex-wrap items-center justify-center gap-y-2"
+                onPaste={onPasteRow}
+                role="presentation"
+              >
+                {boxRow}
               </div>
-
-              <p className="mx-auto mt-5 max-w-sm text-center text-xs leading-relaxed text-slate-500">
-                Example: <span className="font-medium text-slate-700">{format.exampleDisplay}</span>
-              </p>
             </fieldset>
 
-            <div className="mt-10 border-t border-slate-100 pt-8">
-              <label htmlFor="lookup-postal" className="block text-center text-sm font-medium text-slate-600">
+            <p className="mt-3 text-center text-xs text-slate-500">
+              Example format: <span className="font-medium text-slate-700">{format.exampleDisplay}</span>
+            </p>
+
+            <div className="mt-8">
+              <label htmlFor="lookup-postal" className="sr-only">
                 Shipping ZIP or postal code
               </label>
               <input
                 id="lookup-postal"
-                className="mt-3 block min-h-12 w-full rounded-2xl border border-slate-200/90 bg-slate-50/50 px-4 text-center text-[15px] text-brand-ink outline-none transition placeholder:text-slate-400 focus:border-support-navy/35 focus:bg-white focus:ring-2 focus:ring-support-navy/10"
+                type="text"
+                autoComplete="postal-code"
+                placeholder="Enter Shipping ZIP Code"
+                className="h-12 w-full rounded-lg border border-slate-300 bg-white px-4 text-center text-[15px] text-brand-ink outline-none placeholder:text-slate-400 focus:border-support-navy focus:ring-2 focus:ring-support-navy/15"
                 value={postal}
                 onChange={(e) => setPostal(e.target.value)}
-                autoComplete="postal-code"
-                placeholder="e.g. 92118"
               />
             </div>
 
             {error ? (
-              <p className="mt-4 text-center text-sm leading-snug text-red-700" role="alert">
+              <p className="mt-4 text-center text-sm text-red-700" role="alert">
                 {error}
               </p>
             ) : null}
 
-            <div className="mt-10 flex justify-center">
+            <div className="mt-8 flex justify-center">
               <button
                 type="submit"
                 disabled={!canSubmit}
                 className={cn(
-                  ctaBase,
+                  'min-h-11 rounded-full px-14 text-sm font-semibold transition',
                   canSubmit
-                    ? 'bg-support-navy text-white shadow-md shadow-support-navy/15 hover:bg-support-navy-hover'
+                    ? 'bg-support-navy text-white hover:bg-support-navy-hover'
                     : 'cursor-not-allowed bg-slate-200 text-slate-500',
                 )}
               >
                 Next
               </button>
             </div>
-          </form>
-        )}
+          </div>
+        </form>
 
-        <HelpBubble open={helpOpen} title={format.helpTitle} body={format.helpBody} onClose={() => setHelpOpen(false)} />
+        {helpOpen ? (
+          <div className="relative mt-6 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 sm:px-6">
+            <button
+              type="button"
+              onClick={() => setHelpOpen(false)}
+              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-lg text-slate-500 hover:bg-white hover:text-brand-ink"
+              aria-label="Close help"
+            >
+              ×
+            </button>
+            <div className="flex gap-3 pr-8">
+              <span
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-support-tint text-sm font-bold text-support-navy"
+                aria-hidden
+              >
+                i
+              </span>
+              <div>
+                <h2 className="text-base font-semibold text-brand-ink">{HELP_PANEL_TITLE}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">{format.helpBody}</p>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -1,85 +1,88 @@
-/** Order lookup — channel-specific entry; composed value must match mock `externalOrderRef`. */
+/**
+ * Order lookup — per-character “box” layout; composed value matches mock `externalOrderRef`.
+ * Channel row formats follow PPT reference (single horizontal row of small boxes + inline separators).
+ */
 
 export type ChannelId = 'myticktalk' | 'amazon' | 'walmart' | 'bestbuy';
 
 export type SegmentKind = 'digits' | 'letters' | 'alphanumeric';
 
-export type SegmentDef = {
-  maxLength: number;
+/** One group of adjacent character boxes in the row. */
+export type CellGroupSpec = {
+  boxCount: number;
   kind: SegmentKind;
 };
 
-/** myticktalk.com: one continuous numeric code (see `OrderLookupPage`). */
-export type FlexNumericSpec = {
-  minDigits: number;
-  maxDigits: number;
-};
+export type BetweenGroupSep = 'dash' | 'dot' | 'none';
 
 export type ChannelOrderFormat = {
   id: ChannelId;
   label: string;
-  /** Amazon / Walmart / Best Buy — fixed-width segment groups. */
-  segments?: SegmentDef[];
-  /** How segments compose into `externalOrderRef` (segment channels only). */
-  join?: 'dashes' | 'none';
-  /** myticktalk.com only — 5–7 digits, no letters or dashes in stored ref. */
-  flexNumeric?: FlexNumericSpec;
+  cellGroups: CellGroupSpec[];
+  /** Visual separator between box groups in the row */
+  betweenGroupSep: BetweenGroupSep;
+  /** How groups join for mock lookup string */
+  storageJoin: 'dashes' | 'none';
+  /** myticktalk.com only — 5–6 digits total, one digit per box, no gaps */
+  minDigits?: number;
+  maxDigits?: number;
   exampleDisplay: string;
-  helpTitle: string;
+  /** Copy for bottom help panel */
   helpBody: string;
 };
+
+export const HELP_PANEL_TITLE = 'How to find your order number';
 
 export const ORDER_LOOKUP_CHANNELS: ChannelOrderFormat[] = [
   {
     id: 'myticktalk',
     label: 'myticktalk.com',
-    flexNumeric: { minDigits: 5, maxDigits: 7 },
-    exampleDisplay: 'e.g. 92118 — 5–7 digits',
-    helpTitle: 'Where to find your TickTalk order number',
+    cellGroups: [{ boxCount: 6, kind: 'digits' }],
+    betweenGroupSep: 'none',
+    storageJoin: 'none',
+    minDigits: 5,
+    maxDigits: 6,
+    exampleDisplay: '92118 or 100001',
     helpBody:
-      'Check your order confirmation email or your myticktalk.com account. The order number is a short numeric code (5–7 digits). Enter digits only — no spaces or dashes.',
+      'Your myticktalk.com order number can be found in your order confirmation email. Enter 5 to 6 digits — no letters, dashes, or prefixes.',
   },
   {
     id: 'amazon',
     label: 'Amazon',
-    segments: [
-      { maxLength: 3, kind: 'digits' },
-      { maxLength: 7, kind: 'digits' },
-      { maxLength: 7, kind: 'digits' },
+    cellGroups: [
+      { boxCount: 3, kind: 'digits' },
+      { boxCount: 7, kind: 'digits' },
+      { boxCount: 7, kind: 'digits' },
     ],
-    join: 'dashes',
-    exampleDisplay: '111 · 2959942 · 5172257',
-    helpTitle: 'Where to find your Amazon order ID',
-    helpBody:
-      'In the Amazon app or site, go to Your Orders and open the order. The order ID is three number groups separated by dashes. The same ID appears in your shipment confirmation email.',
+    betweenGroupSep: 'dash',
+    storageJoin: 'dashes',
+    exampleDisplay: '111 - 2959942 - 5172257',
+    helpBody: 'Your Amazon order number can be found in Your Orders on Amazon.',
   },
   {
     id: 'walmart',
     label: 'Walmart',
-    segments: [
-      { maxLength: 5, kind: 'digits' },
-      { maxLength: 5, kind: 'digits' },
-      { maxLength: 5, kind: 'digits' },
+    cellGroups: [
+      { boxCount: 8, kind: 'digits' },
+      { boxCount: 7, kind: 'digits' },
     ],
-    join: 'none',
-    exampleDisplay: '12910 · 38252 · 24007',
-    helpTitle: 'Where to find your Walmart order number',
-    helpBody:
-      'Check your Walmart purchase history or your order confirmation email. The order number is fifteen digits. Enter it in three groups of five as shown above.',
+    betweenGroupSep: 'dot',
+    storageJoin: 'none',
+    exampleDisplay: '129103825224007',
+    helpBody: 'Your Walmart order number can be found in Purchase History on Walmart.',
   },
   {
     id: 'bestbuy',
     label: 'Best Buy',
-    segments: [
-      { maxLength: 5, kind: 'alphanumeric' },
-      { maxLength: 12, kind: 'digits' },
-      { maxLength: 1, kind: 'alphanumeric' },
+    cellGroups: [
+      { boxCount: 5, kind: 'alphanumeric' },
+      { boxCount: 12, kind: 'digits' },
+      { boxCount: 1, kind: 'alphanumeric' },
     ],
-    join: 'dashes',
-    exampleDisplay: 'BBY03 · 807142006365 · A',
-    helpTitle: 'Where to find your Best Buy order number',
-    helpBody:
-      'Use the order number from your Best Buy confirmation email or your account order details. It usually starts with a short store code, a long number, and one ending character—use dashes between the groups.',
+    betweenGroupSep: 'dash',
+    storageJoin: 'dashes',
+    exampleDisplay: 'BBY03 - 807142006365 - A',
+    helpBody: 'Your Best Buy order number can be found in Order Details on BestBuy.com.',
   },
 ];
 
@@ -91,107 +94,154 @@ export const ORDER_LOOKUP_BY_ID: Record<ChannelId, ChannelOrderFormat> = ORDER_L
   {} as Record<ChannelId, ChannelOrderFormat>,
 );
 
-export function emptyPartsForChannel(id: ChannelId): string[] {
+export function totalCellCount(fmt: ChannelOrderFormat): number {
+  return fmt.cellGroups.reduce((s, g) => s + g.boxCount, 0);
+}
+
+export function emptyCellsForChannel(id: ChannelId): string[] {
+  const n = totalCellCount(ORDER_LOOKUP_BY_ID[id]);
+  return Array.from({ length: n }, () => '');
+}
+
+function sliceCellsIntoGroups(fmt: ChannelOrderFormat, cells: string[]): string[] {
+  let offset = 0;
+  return fmt.cellGroups.map((g) => {
+    const part = cells.slice(offset, offset + g.boxCount).join('');
+    offset += g.boxCount;
+    return part;
+  });
+}
+
+function myticktalkDigitsFromCells(cells: string[]): string {
+  let s = '';
+  for (const c of cells) {
+    if (!c) break;
+    s += c;
+  }
+  return s;
+}
+
+/** Single keystroke / paste cell: at most one character, normalized to kind. */
+export function sanitizeCellChar(raw: string, kind: SegmentKind): string {
+  const ch = raw.slice(-1) || '';
+  if (!ch) return '';
+  if (kind === 'digits') {
+    return /\d/.test(ch) ? ch : '';
+  }
+  if (kind === 'letters') {
+    return /^[A-Za-z]$/.test(ch) ? ch.toUpperCase() : '';
+  }
+  if (kind === 'alphanumeric') {
+    return /^[A-Za-z0-9]$/.test(ch) ? ch.toUpperCase() : '';
+  }
+  return '';
+}
+
+function cellCharValid(c: string, kind: SegmentKind): boolean {
+  return sanitizeCellChar(c, kind) === c && c.length === 1;
+}
+
+function myticktalkCellsComplete(cells: string[], min: number, max: number): boolean {
+  const n = myticktalkDigitsFromCells(cells).length;
+  if (n < min || n > max) return false;
+  for (let i = 0; i < n; i++) {
+    if (!/^\d$/.test(cells[i] ?? '')) return false;
+  }
+  for (let i = n; i < cells.length; i++) {
+    if (cells[i]) return false;
+  }
+  return true;
+}
+
+export function composeExternalOrderRef(id: ChannelId, cells: string[]): string {
   const fmt = ORDER_LOOKUP_BY_ID[id];
-  if (fmt.flexNumeric) return [''];
-  const segs = fmt.segments ?? [];
-  return segs.map(() => '');
-}
-
-export function sanitizeSegment(value: string, def: SegmentDef): string {
-  if (def.kind === 'digits') {
-    return value.replace(/\D/g, '').slice(0, def.maxLength);
+  if (id === 'myticktalk') {
+    return myticktalkDigitsFromCells(cells);
   }
-  if (def.kind === 'letters') {
-    return value
-      .replace(/[^A-Za-z]/g, '')
-      .toUpperCase()
-      .slice(0, def.maxLength);
+  const groups = sliceCellsIntoGroups(fmt, cells);
+  if (fmt.storageJoin === 'dashes') {
+    return groups.join('-');
   }
-  return value
-    .replace(/[^A-Za-z0-9]/g, '')
-    .toUpperCase()
-    .slice(0, def.maxLength);
+  return groups.join('');
 }
 
-export function sanitizeFlexNumeric(value: string, spec: FlexNumericSpec): string {
-  return value.replace(/\D/g, '').slice(0, spec.maxDigits);
-}
-
-export function flexNumericEntryComplete(part: string, spec: FlexNumericSpec): boolean {
-  const d = (part ?? '').replace(/\D/g, '');
-  return d.length >= spec.minDigits && d.length <= spec.maxDigits;
-}
-
-export function composeExternalOrderRef(id: ChannelId, parts: string[]): string {
+export function orderEntryComplete(id: ChannelId, cells: string[]): boolean {
   const fmt = ORDER_LOOKUP_BY_ID[id];
-  if (fmt.flexNumeric) {
-    return sanitizeFlexNumeric(parts[0] ?? '', fmt.flexNumeric);
+  if (id === 'myticktalk' && fmt.minDigits != null && fmt.maxDigits != null) {
+    return myticktalkCellsComplete(cells, fmt.minDigits, fmt.maxDigits);
   }
-  const segments = fmt.segments;
-  const join = fmt.join ?? 'none';
-  if (!segments?.length) return '';
-  const cleaned = segments.map((def, i) => sanitizeSegment(parts[i] ?? '', def));
-  if (join === 'dashes') {
-    return cleaned.join('-');
+  let idx = 0;
+  for (const g of fmt.cellGroups) {
+    for (let i = 0; i < g.boxCount; i++) {
+      const c = cells[idx++] ?? '';
+      if (!cellCharValid(c, g.kind)) return false;
+    }
   }
-  return cleaned.join('');
+  return cells.length === totalCellCount(fmt);
 }
 
-export function segmentsComplete(id: ChannelId, parts: string[]): boolean {
-  const fmt = ORDER_LOOKUP_BY_ID[id];
-  const segments = fmt.segments;
-  if (!segments?.length) return false;
-  return segments.every((def, i) => (parts[i] ?? '').length === def.maxLength);
-}
-
-export function orderEntryComplete(id: ChannelId, parts: string[]): boolean {
-  const fmt = ORDER_LOOKUP_BY_ID[id];
-  if (fmt.flexNumeric) {
-    return flexNumericEntryComplete(parts[0] ?? '', fmt.flexNumeric);
-  }
-  return segmentsComplete(id, parts);
-}
-
-/** Parse clipboard / pasted full order ref into parts.; returns null if unrecognized. */
-export function parsePastedOrderRef(id: ChannelId, raw: string): string[] | null {
+/** Paste / autofill: returns full cell array or null if unrecognized. */
+export function distributePastedOrderToCells(id: ChannelId, raw: string): string[] | null {
   const fmt = ORDER_LOOKUP_BY_ID[id];
   const t = raw.trim();
   if (!t) return null;
+  const total = totalCellCount(fmt);
 
   if (id === 'myticktalk') {
-    const spec = fmt.flexNumeric;
-    if (!spec) return null;
     const d = t.replace(/\D/g, '');
-    if (d.length >= spec.minDigits && d.length <= spec.maxDigits) return [d];
-    return null;
+    if (d.length < (fmt.minDigits ?? 5) || d.length > (fmt.maxDigits ?? 6)) return null;
+    const cells = emptyCellsForChannel(id);
+    for (let i = 0; i < d.length; i++) cells[i] = d[i]!;
+    return cells;
   }
 
   if (id === 'amazon') {
+    let a: string;
+    let b: string;
+    let c: string;
     const m = t.match(/^(\d{3})-(\d{7})-(\d{7})$/);
-    if (m) return [m[1], m[2], m[3]];
-    const d = t.replace(/\D/g, '');
-    if (d.length === 17) return [d.slice(0, 3), d.slice(3, 10), d.slice(10, 17)];
-    return null;
+    if (m) {
+      a = m[1];
+      b = m[2];
+      c = m[3];
+    } else {
+      const d = t.replace(/\D/g, '');
+      if (d.length !== 17) return null;
+      a = d.slice(0, 3);
+      b = d.slice(3, 10);
+      c = d.slice(10, 17);
+    }
+    const flat = [...a.split(''), ...b.split(''), ...c.split('')];
+    if (flat.length !== total) return null;
+    return flat;
   }
 
   if (id === 'walmart') {
     const d = t.replace(/\D/g, '');
-    if (d.length === 15) {
-      return [d.slice(0, 5), d.slice(5, 10), d.slice(10, 15)];
-    }
-    return null;
+    if (d.length !== 15) return null;
+    return d.split('');
   }
 
   if (id === 'bestbuy') {
     const m = t.match(/^([A-Za-z0-9]{5})-(\d{12})-([A-Za-z0-9])$/);
+    let a: string;
+    let b: string;
+    let c: string;
     if (m) {
-      return [m[1].toUpperCase(), m[2], m[3].toUpperCase()];
+      a = m[1].toUpperCase();
+      b = m[2];
+      c = m[3].toUpperCase();
+    } else {
+      const compact = t.replace(/[^A-Za-z0-9]/g, '');
+      const m2 = compact.match(/^([A-Za-z0-9]{5})(\d{12})([A-Za-z0-9])$/i);
+      if (!m2) return null;
+      a = m2[1].toUpperCase();
+      b = m2[2];
+      c = m2[3].toUpperCase();
     }
-    const compact = t.replace(/[^A-Za-z0-9]/g, '');
-    const m2 = compact.match(/^([A-Za-z0-9]{5})(\d{12})([A-Za-z0-9])$/i);
-    if (m2) return [m2[1].toUpperCase(), m2[2], m2[3].toUpperCase()];
-    return null;
+    const flat = [...a.split(''), ...b.split(''), ...c.split('')];
+    if (flat.length !== total) return null;
+    return flat;
   }
 
   return null;
