@@ -49,6 +49,7 @@ import {
   clearPostReplacementPrefill,
   savePostReplacementPrefill,
 } from '@/features/serviceOrder/postReplacementPrefill';
+import { preferServiceOrdersTabOnNextAccountRequestsVisit } from '@/features/serviceOrder/accountRequestsTabPreference';
 import { carePlusNotAvailableMessage, evaluateCarePlusAfterVerify } from '@/features/serviceOrder/carePlusReplacementGate';
 import type { ServiceFlowLocationState } from '@/features/serviceOrder/serviceFlowLocation';
 import { useServiceOrderAccount } from '@/features/serviceOrder/ServiceOrderAccountContext';
@@ -252,6 +253,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
         contactName: profile.name.trim() || pending.contactName,
       });
       clearPostReplacementPrefill();
+      preferServiceOrdersTabOnNextAccountRequestsVisit();
       navigate('/account/requests');
       return;
     }

@@ -27,6 +27,10 @@ export type ServiceOrderListRow = {
   issueDescription: string;
   /** Demo “upload” thumbnails count; purchase orders use 0 */
   attachmentSlotCount: number;
+  /** Purchase orders — short channel label */
+  channelLabel?: string;
+  /** Service requests — linked purchase order number */
+  linkedPurchaseOrderRef?: string;
 };
 
 const LIST_TYPE_LABEL: Record<ServiceOrderListRow['listType'], string> = {
@@ -96,6 +100,7 @@ export function buildServiceOrderList(
   const mine = registered.filter((r) => matchesProfile(r, profile));
 
   for (const r of mine) {
+    const ord = getOrderById(r.orderId);
     const listType: ServiceOrderListRow['listType'] =
       r.kind === 'replacement'
         ? 'replacement'
@@ -115,6 +120,7 @@ export function buildServiceOrderList(
       swatches: r.productSwatches.length ? r.productSwatches : ['bg-slate-200'],
       issueDescription: r.issueDescription,
       attachmentSlotCount: r.uploadedImageCount ?? 0,
+      linkedPurchaseOrderRef: ord?.externalOrderRef ?? '',
     });
   }
 
@@ -143,6 +149,7 @@ export function buildServiceOrderList(
 }
 
 function rmaToRow(rma: Rma): ServiceOrderListRow {
+  const order = getOrderById(rma.orderId);
   const listType: ServiceOrderListRow['listType'] =
     rma.kind === 'replacement'
       ? 'replacement'
@@ -162,12 +169,13 @@ function rmaToRow(rma: Rma): ServiceOrderListRow {
     swatches: thumbForOrder(rma.orderId),
     issueDescription: issueDescriptionForMockRma(rma),
     attachmentSlotCount: 3,
+    linkedPurchaseOrderRef: order?.externalOrderRef ?? '',
   };
 }
 
 function tradeInToRow(t: TradeInRequest, requestDateFallback: string): ServiceOrderListRow {
   const order = t.orderId ? getOrderById(t.orderId) : undefined;
-  const ref = order ? `${order.externalOrderRef} · Trade-in` : t.id;
+  const ref = t.rmaId ?? `TI-${t.id}`;
   return {
     id: `tradein-${t.id}`,
     listType: 'trade_in',
@@ -181,6 +189,7 @@ function tradeInToRow(t: TradeInRequest, requestDateFallback: string): ServiceOr
       ? `${t.brand} trade-in — IMEI ${t.imei} (demo).`
       : `${t.brand} trade-in (demo).`,
     attachmentSlotCount: 0,
+    linkedPurchaseOrderRef: order?.externalOrderRef ?? '',
   };
 }
 
@@ -188,6 +197,7 @@ function orderToPurchaseRow(orderId: string): ServiceOrderListRow | null {
   const order = getOrderById(orderId);
   if (!order) return null;
   const ch = CHANNEL_SHORT[order.channel];
+  const channelLabel = `${ch}${order.shippingRegion === 'international' ? ' · International' : ''}`;
   return {
     id: `purchase-${order.id}`,
     listType: 'purchase_order',
@@ -197,8 +207,9 @@ function orderToPurchaseRow(orderId: string): ServiceOrderListRow | null {
     requestDate: order.createdAt,
     detailPath: `/service/order/${order.id}`,
     swatches: thumbForOrder(order.id),
-    issueDescription: `Original purchase · ${ch}${order.shippingRegion === 'international' ? ' · International' : ''} (demo).`,
+    issueDescription: '',
     attachmentSlotCount: 0,
+    channelLabel,
   };
 }
 

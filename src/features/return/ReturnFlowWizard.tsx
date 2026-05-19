@@ -41,6 +41,7 @@ import {
   type PerLineReturnReason,
   type ReturnReasonId,
 } from '@/features/return/returnReasons';
+import { preferServiceOrdersTabOnNextAccountRequestsVisit } from '@/features/serviceOrder/accountRequestsTabPreference';
 import { buildReturnPendingRma } from '@/features/serviceOrder/buildReturnPendingRma';
 import { clearPendingServiceOrder, savePendingServiceOrder } from '@/features/serviceOrder/pendingServiceOrderStorage';
 import type { ServiceFlowLocationState } from '@/features/serviceOrder/serviceFlowLocation';
@@ -303,6 +304,7 @@ export function ReturnFlowWizard({ order }: { order: Order }) {
         contactName: profile.name.trim() || pendingRma.contactName,
       });
       clearPendingServiceOrder();
+      preferServiceOrdersTabOnNextAccountRequestsVisit();
       navigate('/account/requests', { replace: true });
       return;
     }

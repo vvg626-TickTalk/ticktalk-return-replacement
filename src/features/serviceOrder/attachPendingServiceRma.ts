@@ -2,6 +2,7 @@ import {
   clearPendingServiceOrder,
   readPendingServiceOrder,
 } from '@/features/serviceOrder/pendingServiceOrderStorage';
+import { preferServiceOrdersTabOnNextAccountRequestsVisit } from '@/features/serviceOrder/accountRequestsTabPreference';
 import type { RegisteredServiceRma, ServiceOrderProfile } from '@/features/serviceOrder/types';
 
 /**
@@ -22,5 +23,6 @@ export function attachPendingRmaIfAny(
     phone: pre.pendingRma.phone,
     contactName: profile.name.trim() || pre.pendingRma.contactName,
   });
+  preferServiceOrdersTabOnNextAccountRequestsVisit();
   clearPendingServiceOrder();
 }
