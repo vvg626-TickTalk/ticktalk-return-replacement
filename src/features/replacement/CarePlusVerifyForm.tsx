@@ -16,6 +16,9 @@ export type CarePlusVerifyFormProps = {
   onCancel: () => void;
   defaultDevicePhone?: string;
   defaultParentAccount?: string;
+  /** Shown in the plan info shell (e.g. TickTalk Care+ vs Plus+ Plan). */
+  planHeading?: string;
+  planDeviceBlurb?: string;
 };
 
 function outcomeMessage(outcome: Exclude<CarePlusForcedOutcome, 'auto'>): string {
@@ -50,6 +53,8 @@ export function CarePlusVerifyForm({
   onCancel,
   defaultDevicePhone = '+1 ',
   defaultParentAccount = '',
+  planHeading = 'TickTalk Care+',
+  planDeviceBlurb = 'TickTalk 5 and earlier. We text a code to the watch number on file.',
 }: CarePlusVerifyFormProps) {
   const [devicePhone, setDevicePhone] = useState(defaultDevicePhone);
   const [parentAccount, setParentAccount] = useState(defaultParentAccount);
@@ -135,8 +140,8 @@ export function CarePlusVerifyForm({
       ) : null}
 
       <div className={shell}>
-        <p className="text-[12px] font-semibold text-slate-900">TickTalk Care+</p>
-        <p className="mt-1 text-[11px] leading-snug text-slate-600">TickTalk 5 only. We text a code to the watch number on file.</p>
+        <p className="text-[12px] font-semibold text-slate-900">{planHeading}</p>
+        <p className="mt-1 text-[11px] leading-snug text-slate-600">{planDeviceBlurb}</p>
       </div>
 
       <div className={shell}>

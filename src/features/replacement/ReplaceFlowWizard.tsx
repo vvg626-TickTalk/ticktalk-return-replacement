@@ -22,6 +22,15 @@ import {
   formatIntlContactInput,
   stripPhoneToDigits,
 } from '@/features/replacement/phoneFormat';
+import {
+  carePlanGateModalDescription,
+  carePlanGateModalTitle,
+  carePlanGateVerifyCtaLabel,
+  carePlanRequiredSubtitle,
+  carePlanVerifyFormDeviceBlurb,
+  carePlanVerifyFormHeading,
+  carePlanVerifyModalTitle,
+} from '@/features/replacement/carePlanLabels';
 import { getReplacementReason, type ReplacementReasonId } from '@/features/replacement/replacementReasons';
 import { ReasonFields } from '@/features/replacement/ReasonFields';
 import {
@@ -92,10 +101,12 @@ function labelForLine(line: OrderLine): string {
   return line.isGift ? `${base} (gift)` : base;
 }
 
-function previewIssueHeading(form: PerItemReasonForm): string {
+function previewIssueHeading(form: PerItemReasonForm, watchGeneration: string | undefined): string {
   const def = getReplacementReason(form.reasonId);
   if (!def) return '—';
-  return def.subtitle ? `${def.label} ${def.subtitle}` : def.label;
+  if (def.subtitle) return `${def.label} ${def.subtitle}`;
+  if (def.carePlusOnly) return `${def.label} ${carePlanRequiredSubtitle(watchGeneration)}`;
+  return def.label;
 }
 
 function previewReasonLine(form: PerItemReasonForm): string {
@@ -186,6 +197,13 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
 
   const [policyDetailsOpen, setPolicyDetailsOpen] = useState(false);
   const [carePlusDeniedOpen, setCarePlusDeniedOpen] = useState(false);
+  const [carePlusDeniedGeneration, setCarePlusDeniedGeneration] = useState<string | undefined>();
+
+  const carePlusTargetGeneration = useMemo(() => {
+    if (!carePlus) return undefined;
+    const ln = lines.find((l) => l.id === carePlus.lineId);
+    return ln ? getProductById(ln.productId)?.generation : undefined;
+  }, [carePlus, lines]);
 
   useEffect(() => {
     if (prefillAppliedRef.current) return;
@@ -564,7 +582,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
               {REPLACEMENT_ADD_ITEMS_EMPTY_HELPER}
             </p>
             <p className="mt-1 text-[11px] leading-snug text-slate-600">
-              A few choices require TickTalk Care+—we&apos;ll confirm only when it applies.
+              Some choices need an active TickTalk Care+ or Plus+ Plan—we&apos;ll confirm only when it applies.
             </p>
           </div>
           <div className="divide-y divide-slate-200 border-t border-slate-200">
@@ -580,6 +598,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
                     <ReasonFields
                       orderLineId={s.orderLineId}
                       value={st}
+                      watchGeneration={getProductById(line.productId)?.generation}
                       carePlusVerified={carePlusVerified}
                       supportPortal
                       onCarePlusReasonAttempt={(lineId, reasonId) => {
@@ -772,7 +791,7 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
                       <div className="space-y-1 text-sm leading-snug">
                         <p>
                           <span className="font-semibold text-slate-800">Issue · </span>
-                          <span className="text-slate-700">{previewIssueHeading(st)}</span>
+                          <span className="text-slate-700">{previewIssueHeading(st, p.generation)}</span>
                         </p>
                         <p className="text-slate-700">
                           <span className="font-semibold text-slate-800">Note · </span>
@@ -1170,14 +1189,14 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
       <Modal
         open={!!carePlus && carePlus.phase === 'gate'}
         onClose={() => setCarePlus(null)}
-        title="TickTalk Care+ Required"
-        description="This issue needs an active TickTalk Care+ plan (TT5 in this demo)."
+        title={carePlanGateModalTitle(carePlusTargetGeneration)}
+        description={carePlanGateModalDescription(carePlusTargetGeneration)}
         secondaryAction={{
           label: 'Cancel',
           onClick: () => setCarePlus(null),
         }}
         primaryAction={{
-          label: 'Verify Care+',
+          label: carePlanGateVerifyCtaLabel(carePlusTargetGeneration),
           onClick: () => setCarePlus((c) => (c ? { ...c, phase: 'verify' } : c)),
         }}
       />
@@ -1185,20 +1204,25 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
       <Modal
         open={!!carePlus && carePlus.phase === 'verify'}
         onClose={() => setCarePlus(null)}
-        title="Verify TickTalk Care+"
+        title={carePlanVerifyModalTitle(carePlusTargetGeneration)}
         description={undefined}
       >
         <CarePlusVerifyForm
+          planHeading={carePlanVerifyFormHeading(carePlusTargetGeneration)}
+          planDeviceBlurb={carePlanVerifyFormDeviceBlurb(carePlusTargetGeneration)}
           onCancel={() => setCarePlus((c) => (c ? { ...c, phase: 'gate' } : c))}
           onVerified={() => {
             const c = carePlusRef.current;
             if (!c || c.phase !== 'verify') return;
+            const deniedLine = lines.find((l) => l.id === c.lineId);
+            const deniedGen = deniedLine ? getProductById(deniedLine.productId)?.generation : undefined;
             const post = evaluateCarePlusAfterVerify({
               customerId: order.customerId,
               orderLineId: c.lineId,
               reasonId: c.reasonId,
             });
             if (!post.ok) {
+              setCarePlusDeniedGeneration(deniedGen);
               setCarePlus(null);
               setCarePlusDeniedOpen(true);
               return;
@@ -1220,10 +1244,19 @@ export function ReplaceFlowWizard({ order }: { order: Order }) {
 
       <ServiceMessageModal
         open={carePlusDeniedOpen}
-        title={carePlusNotAvailableMessage().title}
-        message={carePlusNotAvailableMessage().body}
-        onClose={() => setCarePlusDeniedOpen(false)}
-        primaryAction={{ label: 'OK', onClick: () => setCarePlusDeniedOpen(false) }}
+        title={carePlusNotAvailableMessage(carePlusDeniedGeneration).title}
+        message={carePlusNotAvailableMessage(carePlusDeniedGeneration).body}
+        onClose={() => {
+          setCarePlusDeniedOpen(false);
+          setCarePlusDeniedGeneration(undefined);
+        }}
+        primaryAction={{
+          label: 'OK',
+          onClick: () => {
+            setCarePlusDeniedOpen(false);
+            setCarePlusDeniedGeneration(undefined);
+          },
+        }}
       />
     </div>
   );

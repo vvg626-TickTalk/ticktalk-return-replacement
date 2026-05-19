@@ -1,5 +1,10 @@
 import type { ReplacementReasonDef, ReplacementReasonId } from '@/features/replacement/replacementReasons';
 import { REPLACEMENT_REASONS } from '@/features/replacement/replacementReasons';
+import {
+  carePlanCoveredBadgeLine,
+  carePlanRequiredSubtitle,
+  carePlanRequirementShortHint,
+} from '@/features/replacement/carePlanLabels';
 import type { MockUploadItem, PerItemReasonForm } from '@/features/replacement/reasonValidation';
 import { emptyReasonForm, normalizePerItemReasonForm } from '@/features/replacement/reasonValidation';
 import { supportTextarea, supportUploadAddBtn, supportUploadRemoveBtn, supportUploadThumb } from '@/ui/supportTheme';
@@ -92,11 +97,13 @@ function ExpandedReasonBody({
   value,
   onChange,
   carePlusVerified,
+  watchGeneration,
 }: {
   def: ReplacementReasonDef;
   value: PerItemReasonForm;
   onChange: (next: PerItemReasonForm) => void;
   carePlusVerified: boolean;
+  watchGeneration?: string;
 }) {
   const patch = (partial: Partial<PerItemReasonForm>) => onChange({ ...value, ...partial });
 
@@ -135,8 +142,8 @@ function ExpandedReasonBody({
       ) : null}
 
       {def.showCarePlusBadge && carePlusVerified ? (
-        <span className="inline-flex rounded-lg bg-support-tint px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-support-navy ring-1 ring-support-navy/12">
-          Covered by TickTalk Care+
+        <span className="inline-flex max-w-full rounded-lg bg-support-tint px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-support-navy ring-1 ring-support-navy/12">
+          {carePlanCoveredBadgeLine(watchGeneration)}
         </span>
       ) : null}
 
@@ -206,6 +213,8 @@ export type ReasonFieldsProps = {
   onCarePlusReasonAttempt: (lineId: string, reasonId: ReplacementReasonId) => void;
   carePlusVerified: boolean;
   supportPortal?: boolean;
+  /** Watch product generation (e.g. TT5, TT6) for Care+/Plus+ labeling on gated reasons. */
+  watchGeneration?: string;
 };
 
 export function ReasonFields({
@@ -215,6 +224,7 @@ export function ReasonFields({
   onCarePlusReasonAttempt,
   carePlusVerified,
   supportPortal,
+  watchGeneration,
 }: ReasonFieldsProps) {
   const safeValue = normalizePerItemReasonForm(value);
 
@@ -243,6 +253,8 @@ export function ReasonFields({
           {REPLACEMENT_REASONS.map((r) => {
             const selected = safeValue.reasonId === r.id;
             const showExpanded = selected && (!r.carePlusOnly || carePlusVerified);
+            const careSubtitle = r.carePlusOnly ? carePlanRequiredSubtitle(watchGeneration) : r.subtitle;
+            const careHint = r.carePlusOnly ? carePlanRequirementShortHint(watchGeneration) : r.shortHint;
             return (
               <div key={r.id} className="py-2.5 first:pt-1">
                 <label
@@ -260,14 +272,20 @@ export function ReasonFields({
                   />
                   <span className="min-w-0 flex-1">
                     <span className="text-[13px] font-semibold leading-snug text-slate-900">{r.label}</span>
-                    {r.subtitle ? (
-                      <span className="mt-0.5 block text-[11px] leading-snug text-slate-500">{r.subtitle}</span>
+                    {careSubtitle ? (
+                      <span className="mt-0.5 block text-[11px] leading-snug text-slate-500">{careSubtitle}</span>
                     ) : null}
-                    {r.shortHint ? <p className="mt-1 text-[10px] leading-snug text-slate-500">{r.shortHint}</p> : null}
+                    {careHint ? <p className="mt-1 text-[10px] leading-snug text-slate-500">{careHint}</p> : null}
                   </span>
                 </label>
                 {showExpanded ? (
-                  <ExpandedReasonBody def={r} value={safeValue} onChange={onChange} carePlusVerified={r.carePlusOnly ? carePlusVerified : false} />
+                  <ExpandedReasonBody
+                    def={r}
+                    value={safeValue}
+                    onChange={onChange}
+                    carePlusVerified={r.carePlusOnly ? carePlusVerified : false}
+                    watchGeneration={watchGeneration}
+                  />
                 ) : null}
               </div>
             );

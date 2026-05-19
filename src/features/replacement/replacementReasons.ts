@@ -74,10 +74,8 @@ export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
   {
     id: 'screen_cracked',
     label: 'Cracked or Broken Screen',
-    subtitle: '(Care+ · TT5)',
     previewSummary: 'Cracked or broken screen.',
     carePlusOnly: true,
-    shortHint: 'TickTalk 5 with Care+ only in this flow.',
     description: { mode: 'required', placeholder: 'Describe the issue…' },
     descriptionHelper: 'Briefly describe how the damage occurred.',
     upload: { type: 'none' },
@@ -124,10 +122,8 @@ export const REPLACEMENT_REASONS: ReplacementReasonDef[] = [
   {
     id: 'water_damage',
     label: 'Water Damage',
-    subtitle: '(Care+ · TT5)',
     previewSummary: 'Liquid or water damage.',
     carePlusOnly: true,
-    shortHint: 'TickTalk 5 with Care+ only in this flow.',
     description: { mode: 'required', placeholder: 'Describe the issue…' },
     descriptionHelper: 'Describe how the water exposure happened.',
     upload: { type: 'none' },

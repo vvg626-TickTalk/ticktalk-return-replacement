@@ -1,5 +1,6 @@
 import type { ReplacementReasonId } from '@/features/replacement/replacementReasons';
 import { getReplacementReason } from '@/features/replacement/replacementReasons';
+import { carePlanNotAvailableBody, carePlanNotAvailableTitle } from '@/features/replacement/carePlanLabels';
 import { carePlusSubscriptions } from '@/mock-data';
 
 export type CarePlusGateFailureCode =
@@ -12,11 +13,11 @@ export type CarePlusPostVerifyResult =
   | { ok: true }
   | { ok: false; code: CarePlusGateFailureCode };
 
-const CARE_COPY =
-  'This device does not have active TickTalk Care+ coverage for this issue.';
-
-export function carePlusNotAvailableMessage(): { title: string; body: string } {
-  return { title: 'TickTalk Care+ Not Available', body: CARE_COPY };
+export function carePlusNotAvailableMessage(productGeneration?: string): { title: string; body: string } {
+  return {
+    title: carePlanNotAvailableTitle(productGeneration),
+    body: carePlanNotAvailableBody(productGeneration),
+  };
 }
 
 /**
